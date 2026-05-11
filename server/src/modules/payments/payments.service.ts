@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import { Pool } from 'pg';
 import { CreatePaymentsDto } from './dto/create_payments.dto';
 import { UpdatePaymentsDto } from './dto/update_payments.dto';
 import { QueryPaymentsDto } from './dto/query_payments.dto';
 import { PaymentsRecord } from './interfaces/payments.interface';
+import { Inject } from '@nestjs/common';
+import { PG_POOL } from '../../database/pg.provider';
 
 @Injectable()
 export class PaymentsService {
+  constructor(@Inject(PG_POOL) private readonly pool: Pool) {}
+
   create(dto: CreatePaymentsDto) {
     return {
       message: 'Create payments',

@@ -224,9 +224,8 @@ CREATE TABLE IF NOT EXISTS order_items (
 CREATE TABLE IF NOT EXISTS payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-  provider VARCHAR(50) NOT NULL DEFAULT 'MOMO',
+  provider VARCHAR(50) NOT NULL DEFAULT 'OTHER',
   transaction_id VARCHAR(255),
-  momo_order_id VARCHAR(255),
   amount DECIMAL(12,2) NOT NULL CHECK (amount >= 0),
   status payment_provider_status NOT NULL DEFAULT 'PENDING',
   raw_response JSONB,
@@ -394,3 +393,4 @@ SELECT
 FROM categories c
 WHERE c.slug = 'gift-set'
 ON CONFLICT (slug) DO NOTHING;
+

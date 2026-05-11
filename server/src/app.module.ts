@@ -13,7 +13,6 @@ import { AddressesModule } from './modules/addresses/addresses.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { OrderItemsModule } from './modules/order_items/order_items.module';
 import { PaymentsModule } from './modules/payments/payments.module';
-import { PaymentWebhooksModule } from './modules/payment_webhooks/payment_webhooks.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { InventoryLogsModule } from './modules/inventory_logs/inventory_logs.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
@@ -33,7 +32,6 @@ import { AuthModule } from './modules/auth/auth.module';
     OrdersModule,
     OrderItemsModule,
     PaymentsModule,
-    PaymentWebhooksModule,
     ReviewsModule,
     InventoryLogsModule,
     CouponsModule,

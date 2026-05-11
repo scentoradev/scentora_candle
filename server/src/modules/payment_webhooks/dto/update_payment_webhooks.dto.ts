@@ -4,11 +4,11 @@ export class UpdatePaymentWebhooksDto {
   @ApiPropertyOptional({
     example: {
       payload: {
-        orderId: 'MOMO_ORD_001',
+        orderId: 'PAY_ORD_001',
         resultCode: 0,
         message: 'Success',
       },
-      provider: 'MOMO',
+      provider: 'OTHER',
     },
   })
   data?: Record<string, unknown>;
