@@ -1,19 +1,20 @@
 # `public/img`
 
-## Purpose / Mục đích
+## Purpose / Má»¥c Ä‘Ă­ch
 - English: This folder stores static image assets served directly by the web server without compilation into React components.
-- Tiếng Việt: Thư mục này lưu các ảnh tĩnh được server web phục vụ trực tiếp mà không cần biên dịch thành React component.
+- Tiáº¿ng Viá»‡t: ThÆ° má»¥c nĂ y lÆ°u cĂ¡c áº£nh tÄ©nh Ä‘Æ°á»£c server web phá»¥c vá»¥ trá»±c tiáº¿p mĂ  khĂ´ng cáº§n biĂªn dá»‹ch thĂ nh React component.
 
-## What should live here / Nên đặt gì ở đây
+## What should live here / NĂªn Ä‘áº·t gĂ¬ á»Ÿ Ä‘Ă¢y
 - English: Logos, icons, hero images, banners, placeholders, and other static image files used by the UI.
-- Tiếng Việt: Logo, icon, ảnh hero, banner, ảnh placeholder và các file ảnh tĩnh khác dùng cho giao diện.
+- Tiáº¿ng Viá»‡t: Logo, icon, áº£nh hero, banner, áº£nh placeholder vĂ  cĂ¡c file áº£nh tÄ©nh khĂ¡c dĂ¹ng cho giao diá»‡n.
 - English: Files referenced by URL paths such as `/img/example.png`.
-- Tiếng Việt: Các file được tham chiếu bằng đường dẫn URL như `/img/example.png`.
+- Tiáº¿ng Viá»‡t: CĂ¡c file Ä‘Æ°á»£c tham chiáº¿u báº±ng Ä‘Æ°á»ng dáº«n URL nhÆ° `/img/example.png`.
 
-## What should not live here / Không nên đặt ở đây
+## What should not live here / KhĂ´ng nĂªn Ä‘áº·t á»Ÿ Ä‘Ă¢y
 - English: Generated runtime data, source design files, or React component code.
-- Tiếng Việt: Dữ liệu phát sinh lúc chạy, file thiết kế nguồn hoặc mã React component.
+- Tiáº¿ng Viá»‡t: Dá»¯ liá»‡u phĂ¡t sinh lĂºc cháº¡y, file thiáº¿t káº¿ nguá»“n hoáº·c mĂ£ React component.
 
-## Example / Ví dụ
+## Example / VĂ­ dá»¥
 - English: `public/img/logo.png`, `public/img/banner-home.webp`
-- Tiếng Việt: `public/img/logo.png`, `public/img/banner-home.webp`
+- Tiáº¿ng Viá»‡t: `public/img/logo.png`, `public/img/banner-home.webp`
+

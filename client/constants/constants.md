@@ -1,19 +1,20 @@
 # `constants`
 
-## Purpose / Mục đích
+## Purpose / Má»¥c Ä‘Ă­ch
 - English: This folder stores fixed values that do not change at runtime, such as labels, route names, enum-like maps, limits, and default settings.
-- Tiếng Việt: Thư mục này lưu các giá trị cố định không thay đổi khi chạy, ví dụ nhãn hiển thị, tên route, map kiểu enum, giới hạn và cấu hình mặc định.
+- Tiáº¿ng Viá»‡t: ThÆ° má»¥c nĂ y lÆ°u cĂ¡c giĂ¡ trá»‹ cá»‘ Ä‘á»‹nh khĂ´ng thay Ä‘á»•i khi cháº¡y, vĂ­ dá»¥ nhĂ£n hiá»ƒn thá»‹, tĂªn route, map kiá»ƒu enum, giá»›i háº¡n vĂ  cáº¥u hĂ¬nh máº·c Ä‘á»‹nh.
 
-## What should live here / Nên đặt gì ở đây
+## What should live here / NĂªn Ä‘áº·t gĂ¬ á»Ÿ Ä‘Ă¢y
 - English: Static configuration objects, route constants, menu definitions, and reusable app-wide labels.
-- Tiếng Việt: Object cấu hình tĩnh, hằng số route, định nghĩa menu và các nhãn dùng lại toàn app.
+- Tiáº¿ng Viá»‡t: Object cáº¥u hĂ¬nh tÄ©nh, háº±ng sá»‘ route, Ä‘á»‹nh nghÄ©a menu vĂ  cĂ¡c nhĂ£n dĂ¹ng láº¡i toĂ n app.
 - English: Values that help avoid hard-coded strings scattered across files.
-- Tiếng Việt: Các giá trị giúp tránh việc viết chuỗi cứng rải rác ở nhiều file.
+- Tiáº¿ng Viá»‡t: CĂ¡c giĂ¡ trá»‹ giĂºp trĂ¡nh viá»‡c viáº¿t chuá»—i cá»©ng ráº£i rĂ¡c á»Ÿ nhiá»u file.
 
-## What should not live here / Không nên đặt ở đây
+## What should not live here / KhĂ´ng nĂªn Ä‘áº·t á»Ÿ Ä‘Ă¢y
 - English: Functions with behavior, async logic, or user-specific state.
-- Tiếng Việt: Function có hành vi xử lý, logic bất đồng bộ hoặc state phụ thuộc người dùng.
+- Tiáº¿ng Viá»‡t: Function cĂ³ hĂ nh vi xá»­ lĂ½, logic báº¥t Ä‘á»“ng bá»™ hoáº·c state phá»¥ thuá»™c ngÆ°á»i dĂ¹ng.
 
-## Example / Ví dụ
+## Example / VĂ­ dá»¥
 - English: `ROUTES`, `APP_NAME`, `DEFAULT_PAGE_SIZE`, `NAV_ITEMS`
-- Tiếng Việt: `ROUTES`, `APP_NAME`, `DEFAULT_PAGE_SIZE`, `NAV_ITEMS`
+- Tiáº¿ng Viá»‡t: `ROUTES`, `APP_NAME`, `DEFAULT_PAGE_SIZE`, `NAV_ITEMS`
+

@@ -1,19 +1,20 @@
 # `middlewares`
 
-## Purpose / Mục đích
+## Purpose / Má»¥c Ä‘Ă­ch
 - English: This folder is for middleware-related helpers or logic that control access, request flow, redirects, and security checks before a page or API handler runs.
-- Tiếng Việt: Thư mục này dùng cho helper hoặc logic liên quan middleware để kiểm soát quyền truy cập, luồng request, chuyển hướng và kiểm tra bảo mật trước khi trang hoặc API handler chạy.
+- Tiáº¿ng Viá»‡t: ThÆ° má»¥c nĂ y dĂ¹ng cho helper hoáº·c logic liĂªn quan middleware Ä‘á»ƒ kiá»ƒm soĂ¡t quyá»n truy cáº­p, luá»“ng request, chuyá»ƒn hÆ°á»›ng vĂ  kiá»ƒm tra báº£o máº­t trÆ°á»›c khi trang hoáº·c API handler cháº¡y.
 
-## What should live here / Nên đặt gì ở đây
+## What should live here / NĂªn Ä‘áº·t gĂ¬ á»Ÿ Ä‘Ă¢y
 - English: Auth guards, path matchers, role checks, locale redirects, and reusable middleware helper functions.
-- Tiếng Việt: Auth guard, path matcher, kiểm tra role, chuyển hướng theo ngôn ngữ và các helper middleware tái sử dụng.
+- Tiáº¿ng Viá»‡t: Auth guard, path matcher, kiá»ƒm tra role, chuyá»ƒn hÆ°á»›ng theo ngĂ´n ngá»¯ vĂ  cĂ¡c helper middleware tĂ¡i sá»­ dá»¥ng.
 - English: Shared logic that can support a root `middleware.ts` file.
-- Tiếng Việt: Logic dùng chung để hỗ trợ cho file `middleware.ts` ở root.
+- Tiáº¿ng Viá»‡t: Logic dĂ¹ng chung Ä‘á»ƒ há»— trá»£ cho file `middleware.ts` á»Ÿ root.
 
-## What should not live here / Không nên đặt ở đây
+## What should not live here / KhĂ´ng nĂªn Ä‘áº·t á»Ÿ Ä‘Ă¢y
 - English: UI components, client-side hooks, or page-specific business logic.
-- Tiếng Việt: UI component, hook phía client hoặc logic nghiệp vụ chỉ dành cho một trang cụ thể.
+- Tiáº¿ng Viá»‡t: UI component, hook phĂ­a client hoáº·c logic nghiá»‡p vá»¥ chá»‰ dĂ nh cho má»™t trang cá»¥ thá»ƒ.
 
-## Example / Ví dụ
+## Example / VĂ­ dá»¥
 - English: `auth-guard.ts`, `match-protected-route.ts`, `role-access.ts`
-- Tiếng Việt: `auth-guard.ts`, `match-protected-route.ts`, `role-access.ts`
+- Tiáº¿ng Viá»‡t: `auth-guard.ts`, `match-protected-route.ts`, `role-access.ts`
+

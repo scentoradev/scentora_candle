@@ -1,27 +1,21 @@
-import type { Metadata } from "next";
-import type { ReactNode } from "react";
+﻿import type { Metadata } from 'next';
 
-import PublicSetup from "@/components/layouts/(public)/PublicSetup";
+import PublicSetup from '@/components/layouts/(public)/PublicSetup';
+import type { LayoutProps } from '@/components/layouts/shared';
 
-import "../globals.css";
+import '../globals.css';
 
 export const metadata: Metadata = {
-  title: "Template React",
-  description: "Giao diện template React đơn giản.",
+  title: 'Scentora Candle',
+  description: 'Luxury candle website.',
 };
 
-type PublicLayoutProps = {
-  children: ReactNode;
-};
-
-export default function PublicLayout({ children }: PublicLayoutProps) {
+export default function PublicLayout({ children }: LayoutProps) {
   return (
-    <html lang="vi">
-      <body className="min-h-screen bg-[#f6f4ef] text-neutral-900">
-        <div className="mx-auto flex min-h-screen w-full max-w-350 flex-col border-x border-neutral-200 bg-white">
-          <PublicSetup>{children}</PublicSetup>
-        </div>
-      </body>
-    </html>
+    <div className="min-h-screen bg-[#f6f4ef] text-neutral-900">
+      <div className="flex min-h-screen w-full flex-col bg-white">
+        <PublicSetup>{children}</PublicSetup>
+      </div>
+    </div>
   );
 }

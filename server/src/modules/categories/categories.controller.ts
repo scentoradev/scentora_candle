@@ -1,4 +1,4 @@
-import {
+﻿import {
   Body,
   Controller,
   Delete,
@@ -7,8 +7,10 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { resolveAuthorizationForSwagger } from '../../utils/admin-auth.util';
 import { CategoriesService } from './categories.service';
 import { CreateCategoriesDto } from './dto/create_categories.dto';
 import { UpdateCategoriesDto } from './dto/update_categories.dto';
@@ -20,13 +22,11 @@ export class CategoriesController {
   constructor(private readonly service: CategoriesService) {}
 
   @Post()
-  create(@Body() dto: CreateCategoriesDto) {
-    return this.service.create(dto);
-  }
-
-  @Post('bulk_create')
-  bulkCreate(@Body() payload: CreateCategoriesDto[]) {
-    return this.service.bulkCreate(payload);
+  create(
+    @Body() dto: CreateCategoriesDto,
+    @Req() req: { headers: { authorization?: string; referer?: string } },
+  ) {
+    return this.service.create(dto, resolveAuthorizationForSwagger(req.headers));
   }
 
   @Get()
@@ -34,9 +34,14 @@ export class CategoriesController {
     return this.service.findAll(query);
   }
 
-  @Get('search')
-  search(@Query() query: QueryCategoriesDto) {
-    return this.service.search(query);
+  @Get('count/all')
+  countAll() {
+    return this.service.countAll();
+  }
+
+  @Get('count/by-parent')
+  countByParent() {
+    return this.service.countByParent();
   }
 
   @Get(':id')
@@ -45,22 +50,19 @@ export class CategoriesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateCategoriesDto) {
-    return this.service.update(id, dto);
-  }
-
-  @Patch(':id/restore')
-  restore(@Param('id') id: string) {
-    return this.service.restore(id);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateCategoriesDto,
+    @Req() req: { headers: { authorization?: string; referer?: string } },
+  ) {
+    return this.service.update(id, dto, resolveAuthorizationForSwagger(req.headers));
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.service.remove(id);
-  }
-
-  @Delete(':id/hard')
-  hardRemove(@Param('id') id: string) {
-    return this.service.hardRemove(id);
+  remove(
+    @Param('id') id: string,
+    @Req() req: { headers: { authorization?: string; referer?: string } },
+  ) {
+    return this.service.remove(id, resolveAuthorizationForSwagger(req.headers));
   }
 }

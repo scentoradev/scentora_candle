@@ -1,4 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Pool } from 'pg';
+import { PG_POOL } from '../../database/pg.provider';
+import { assertAdminAuthorization } from '../../utils/admin-auth.util';
 import { CreateInventoryLogsDto } from './dto/create_inventory_logs.dto';
 import { UpdateInventoryLogsDto } from './dto/update_inventory_logs.dto';
 import { QueryInventoryLogsDto } from './dto/query_inventory_logs.dto';
@@ -6,70 +9,82 @@ import { InventoryLogsRecord } from './interfaces/inventory_logs.interface';
 
 @Injectable()
 export class InventoryLogsService {
-  create(dto: CreateInventoryLogsDto) {
-    return {
-      message: 'Create inventory_logs',
-      data: dto,
+  constructor(@Inject(PG_POOL) private readonly pool: Pool) {}
+
+  async create(dto: CreateInventoryLogsDto, authorization?: string) {
+    assertAdminAuthorization(authorization);
+    const payload = (dto.data ?? dto) as {
+      product_id?: string;
+      type?: 'IN' | 'OUT';
+      quantity?: number;
+      reason?: string;
     };
+    const result = await this.pool.query(
+      `INSERT INTO inventory_logs (product_id, type, quantity, reason) VALUES ($1, $2, $3, $4) RETURNING *`,
+      [
+        payload.product_id,
+        payload.type ?? 'IN',
+        Number(payload.quantity ?? 0),
+        payload.reason ?? null,
+      ],
+    );
+    return { message: 'Create inventory_logs', data: result.rows[0] };
   }
 
-  bulkCreate(payload: CreateInventoryLogsDto[]) {
-    return {
-      message: 'Bulk create inventory_logs',
-      count: payload.length,
-      data: payload,
-    };
+  async findAll(query: QueryInventoryLogsDto, authorization?: string) {
+    assertAdminAuthorization(authorization);
+    const result = await this.pool.query<InventoryLogsRecord>(
+      `SELECT * FROM inventory_logs ORDER BY created_at DESC`,
+    );
+    return { message: 'List inventory_logs', query, items: result.rows };
   }
 
-  findAll(query: QueryInventoryLogsDto) {
-    return {
-      message: 'List inventory_logs',
-      query,
-      items: [] as InventoryLogsRecord[],
-    };
+  async findOne(id: string, authorization?: string) {
+    assertAdminAuthorization(authorization);
+    const result = await this.pool.query<InventoryLogsRecord>(
+      `SELECT * FROM inventory_logs WHERE id = $1 LIMIT 1`,
+      [id],
+    );
+    if (!result.rows[0]) throw new NotFoundException('Inventory log not found');
+    return { message: 'Get inventory_logs by id', data: result.rows[0] };
   }
 
-  search(query: QueryInventoryLogsDto) {
-    return {
-      message: 'Search inventory_logs',
-      query,
-      items: [] as InventoryLogsRecord[],
+  async update(
+    id: string,
+    dto: UpdateInventoryLogsDto,
+    authorization?: string,
+  ) {
+    assertAdminAuthorization(authorization);
+    const payload = (dto.data ?? dto) as {
+      type?: 'IN' | 'OUT';
+      quantity?: number;
+      reason?: string;
     };
+    const result = await this.pool.query(
+      `
+      UPDATE inventory_logs
+      SET type = COALESCE($2, type), quantity = COALESCE($3, quantity), reason = COALESCE($4, reason)
+      WHERE id = $1
+      RETURNING *
+      `,
+      [
+        id,
+        payload.type ?? null,
+        payload.quantity !== undefined ? Number(payload.quantity) : null,
+        payload.reason ?? null,
+      ],
+    );
+    if (!result.rows[0]) throw new NotFoundException('Inventory log not found');
+    return { message: 'Update inventory_logs', data: result.rows[0] };
   }
 
-  findOne(id: string) {
-    return {
-      message: 'Get inventory_logs by id',
-      id,
-    };
-  }
-
-  update(id: string, dto: UpdateInventoryLogsDto) {
-    return {
-      message: 'Update inventory_logs',
-      id,
-      data: dto,
-    };
-  }
-
-  restore(id: string) {
-    return {
-      message: 'Restore inventory_logs',
-      id,
-    };
-  }
-
-  remove(id: string) {
-    return {
-      message: 'Soft delete inventory_logs',
-      id,
-    };
-  }
-
-  hardRemove(id: string) {
-    return {
-      message: 'Hard delete inventory_logs',
-      id,
-    };
+  async remove(id: string, authorization?: string) {
+    assertAdminAuthorization(authorization);
+    const result = await this.pool.query(
+      `DELETE FROM inventory_logs WHERE id = $1 RETURNING id`,
+      [id],
+    );
+    if (!result.rows[0]) throw new NotFoundException('Inventory log not found');
+    return { message: 'Delete inventory_logs', id };
   }
 }

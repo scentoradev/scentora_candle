@@ -1,19 +1,20 @@
 # `store`
 
-## Purpose / Mục đích
+## Purpose / Má»¥c Ä‘Ă­ch
 - English: This folder stores shared client state management logic for data that must be accessed across multiple components or pages.
-- Tiếng Việt: Thư mục này lưu logic quản lý state dùng chung phía client cho dữ liệu cần được truy cập ở nhiều component hoặc nhiều trang.
+- Tiáº¿ng Viá»‡t: ThÆ° má»¥c nĂ y lÆ°u logic quáº£n lĂ½ state dĂ¹ng chung phĂ­a client cho dá»¯ liá»‡u cáº§n Ä‘Æ°á»£c truy cáº­p á»Ÿ nhiá»u component hoáº·c nhiá»u trang.
 
-## What should live here / Nên đặt gì ở đây
+## What should live here / NĂªn Ä‘áº·t gĂ¬ á»Ÿ Ä‘Ă¢y
 - English: Zustand stores, Redux slices, context state modules, selectors, and shared state actions.
-- Tiếng Việt: Zustand store, Redux slice, module state của context, selector và action state dùng chung.
+- Tiáº¿ng Viá»‡t: Zustand store, Redux slice, module state cá»§a context, selector vĂ  action state dĂ¹ng chung.
 - English: Centralized state that should not be recreated inside each component.
-- Tiếng Việt: State trung tâm không nên bị tạo lại bên trong từng component riêng lẻ.
+- Tiáº¿ng Viá»‡t: State trung tĂ¢m khĂ´ng nĂªn bá»‹ táº¡o láº¡i bĂªn trong tá»«ng component riĂªng láº».
 
-## What should not live here / Không nên đặt ở đây
+## What should not live here / KhĂ´ng nĂªn Ä‘áº·t á»Ÿ Ä‘Ă¢y
 - English: One-off local component state or server-only logic.
-- Tiếng Việt: Local state chỉ dùng một lần trong component hoặc logic chỉ chạy phía server.
+- Tiáº¿ng Viá»‡t: Local state chá»‰ dĂ¹ng má»™t láº§n trong component hoáº·c logic chá»‰ cháº¡y phĂ­a server.
 
-## Example / Ví dụ
+## Example / VĂ­ dá»¥
 - English: `auth-store.ts`, `theme-store.ts`, `sidebar-store.ts`
-- Tiếng Việt: `auth-store.ts`, `theme-store.ts`, `sidebar-store.ts`
+- Tiáº¿ng Viá»‡t: `auth-store.ts`, `theme-store.ts`, `sidebar-store.ts`
+

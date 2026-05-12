@@ -14,9 +14,21 @@ export const pgProvider: Provider = {
       throw new Error('DATABASE_URL is missing in environment variables.');
     }
 
-    return new Pool({
+    const pool = new Pool({
       connectionString,
       ssl: { rejectUnauthorized: false },
+      max: 10,
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: 10_000,
+      keepAlive: true,
     });
+
+    pool.on('error', (error) => {
+      // Supabase pooler can reset idle TLS connections; avoid crashing the process.
+      // Requests will get a fresh client from pool on the next query.
+      console.error('[PG_POOL] idle client error:', error.message);
+    });
+
+    return pool;
   },
 };

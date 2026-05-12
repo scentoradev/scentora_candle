@@ -3,14 +3,10 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreateUsersDto {
   @ApiProperty({
     example: {
-      email_verified: true,
-      full_name: 'Nguyen Van A',
-      password_hash: 'hash_value',
-      avatar_url: 'https://cdn.example.com/avatar.jpg',
-      google_id: 'google_123',
-      phone: '0901234567',
-      role: 'user',
-      email: 'user@example.com',
+      full_name: 'Admin',
+      password: '123456',
+      role: 'admin',
+      email: 'admin@example.com',
     },
   })
   data!: Record<string, unknown>;

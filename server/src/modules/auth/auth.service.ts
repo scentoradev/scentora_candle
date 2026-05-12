@@ -1,17 +1,10 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Pool } from 'pg';
-import { compare, hash } from 'bcryptjs';
+import { compare } from 'bcryptjs';
 import { sign, verify, type JwtPayload } from 'jsonwebtoken';
 import { PG_POOL } from '../../database/pg.provider';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
-
-type TokenPayload = JwtPayload & { sub: string; sid: string; email: string };
+type TokenPayload = JwtPayload & { sub: string; email: string; role: string };
 
 type UserRow = {
   id: string;
@@ -35,40 +28,12 @@ export interface AuthResponse {
 export class AuthService {
   constructor(@Inject(PG_POOL) private readonly pool: Pool) {}
 
-  async register(dto: RegisterDto): Promise<AuthResponse> {
-    const existing = await this.pool.query<{ id: string }>(
-      'SELECT id FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1',
-      [dto.email],
-    );
-
-    if (existing.rowCount && existing.rowCount > 0) {
-      throw new BadRequestException('Email already exists');
-    }
-
-    const passwordHash = await hash(dto.password, 10);
-    const inserted = await this.pool.query<UserRow>(
-      `
-      INSERT INTO users (email, password_hash, full_name, email_verified)
-      VALUES ($1, $2, $3, false)
-      RETURNING id, email, password_hash, full_name, role
-      `,
-      [dto.email, passwordHash, dto.full_name],
-    );
-
-    const user = inserted.rows[0];
-    if (!user) {
-      throw new BadRequestException('Unable to create user');
-    }
-
-    return this.createSessionAndToken(user);
-  }
-
   async login(dto: LoginDto): Promise<AuthResponse> {
     const userRes = await this.pool.query<UserRow>(
       `
       SELECT id, email, password_hash, full_name, role
       FROM users
-      WHERE email = $1 AND deleted_at IS NULL
+      WHERE email = $1 AND role = 'admin' AND deleted_at IS NULL
       LIMIT 1
       `,
       [dto.email],
@@ -114,38 +79,16 @@ export class AuthService {
   }
 
   async logout(authorization?: string): Promise<{ message: string }> {
-    const payload = this.verifyAndGetPayload(authorization);
-    await this.pool.query('DELETE FROM user_sessions WHERE id = $1', [
-      payload.sid,
-    ]);
+    this.verifyAndGetPayload(authorization);
     return { message: 'Logged out successfully' };
   }
 
-  private async createSessionAndToken(user: UserRow): Promise<AuthResponse> {
-    const sessionRes = await this.pool.query<{ id: string }>(
-      `
-      INSERT INTO user_sessions (user_id, refresh_token, expired_at)
-      VALUES ($1, $2, NOW() + INTERVAL '7 days')
-      RETURNING id
-      `,
-      [user.id, 'pending'],
-    );
-
-    const sessionId = sessionRes.rows[0]?.id;
-    if (!sessionId) {
-      throw new BadRequestException('Unable to create session');
-    }
-
+  private createSessionAndToken(user: UserRow): AuthResponse {
     const secret = process.env.JWT_SECRET ?? 'dev_secret_change_me';
-    const accessToken = sign({ email: user.email, sid: sessionId }, secret, {
+    const accessToken = sign({ email: user.email, role: user.role }, secret, {
       subject: user.id,
       expiresIn: '7d',
     });
-
-    await this.pool.query(
-      'UPDATE user_sessions SET refresh_token = $1 WHERE id = $2',
-      [accessToken, sessionId],
-    );
 
     return {
       access_token: accessToken,
@@ -172,8 +115,8 @@ export class AuthService {
         typeof decoded === 'object' &&
         decoded !== null &&
         'sub' in decoded &&
-        'sid' in decoded &&
-        'email' in decoded
+        'email' in decoded &&
+        'role' in decoded
       ) {
         return decoded as TokenPayload;
       }

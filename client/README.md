@@ -1,12 +1,12 @@
 # Next Client Template
 
-## Clone repo này
+## Clone repo nĂ y
 ```bash
 git clone  https://github.com/Jye-a-dev/template_next_client.git
 ```
-Template khởi tạo cho frontend dùng **Next.js App Router** theo hướng dễ mở rộng, rõ layout, rõ route group, và đủ gọn để làm base cho project mới.
+Template khá»Ÿi táº¡o cho frontend dĂ¹ng **Next.js App Router** theo hÆ°á»›ng dá»… má»Ÿ rá»™ng, rĂµ layout, rĂµ route group, vĂ  Ä‘á»§ gá»n Ä‘á»ƒ lĂ m base cho project má»›i.
 
-## Stack hiện tại
+## Stack hiá»‡n táº¡i
 
 - Next.js 16
 - React 19
@@ -14,68 +14,68 @@ Template khởi tạo cho frontend dùng **Next.js App Router** theo hướng d�
 - Tailwind CSS 4
 - ESLint
 
-Template này phù hợp khi bạn muốn bắt đầu với một client app bằng Next.js nhưng vẫn giữ cấu trúc folder rõ từ đầu để mở rộng tiếp cho `public`, `auth`, `dashboard`, `services`, `store`, `types`, `utils`.
+Template nĂ y phĂ¹ há»£p khi báº¡n muá»‘n báº¯t Ä‘áº§u vá»›i má»™t client app báº±ng Next.js nhÆ°ng váº«n giá»¯ cáº¥u trĂºc folder rĂµ tá»« Ä‘áº§u Ä‘á»ƒ má»Ÿ rá»™ng tiáº¿p cho `public`, `auth`, `dashboard`, `services`, `store`, `types`, `utils`.
 
-## 1. Project này đang setup theo kiểu nào?
+## 1. Project nĂ y Ä‘ang setup theo kiá»ƒu nĂ o?
 
-Repo hiện tại là kiểu:
+Repo hiá»‡n táº¡i lĂ  kiá»ƒu:
 
 `Next.js + React + TypeScript + Tailwind CSS + App Router`
 
-Đây là setup phù hợp cho:
+ÄĂ¢y lĂ  setup phĂ¹ há»£p cho:
 
-- Website có nhiều khu vực giao diện
-- Dashboard hoặc admin panel
-- Client app cần chia layout theo nhóm route
-- Dự án muốn chuẩn bị sẵn khung `public`, `auth`, `dashboard`
-- Team muốn đi theo file-based routing của Next.js
+- Website cĂ³ nhiá»u khu vá»±c giao diá»‡n
+- Dashboard hoáº·c admin panel
+- Client app cáº§n chia layout theo nhĂ³m route
+- Dá»± Ă¡n muá»‘n chuáº©n bá»‹ sáºµn khung `public`, `auth`, `dashboard`
+- Team muá»‘n Ä‘i theo file-based routing cá»§a Next.js
 
-Template này hiện đang là một base giao diện tối giản:
+Template nĂ y hiá»‡n Ä‘ang lĂ  má»™t base giao diá»‡n tá»‘i giáº£n:
 
-- đã có route group `app/(public)`
-- đã có khung layout `@base` và `(public)`
-- đã có folder placeholder cho `auth` và `dashboard`
-- đã có các folder nền cho `services`, `store`, `types`, `utils`, `hooks`, `libs`, `constants`
+- Ä‘Ă£ cĂ³ route group `app/(public)`
+- Ä‘Ă£ cĂ³ khung layout `@base` vĂ  `(public)`
+- Ä‘Ă£ cĂ³ folder placeholder cho `auth` vĂ  `dashboard`
+- Ä‘Ă£ cĂ³ cĂ¡c folder ná»n cho `services`, `store`, `types`, `utils`, `hooks`, `libs`, `constants`
 
-## 2. Khi nào nên dùng template này?
+## 2. Khi nĂ o nĂªn dĂ¹ng template nĂ y?
 
-Nên dùng template này khi bạn cần:
+NĂªn dĂ¹ng template nĂ y khi báº¡n cáº§n:
 
-- file-based routing của Next.js
-- layout theo khu vực như `public`, `auth`, `dashboard`
-- khả năng mở rộng dần từ template nhỏ lên project lớn
-- React + TypeScript nhưng không muốn tự dựng cấu trúc từ đầu
+- file-based routing cá»§a Next.js
+- layout theo khu vá»±c nhÆ° `public`, `auth`, `dashboard`
+- kháº£ nÄƒng má»Ÿ rá»™ng dáº§n tá»« template nhá» lĂªn project lá»›n
+- React + TypeScript nhÆ°ng khĂ´ng muá»‘n tá»± dá»±ng cáº¥u trĂºc tá»« Ä‘áº§u
 
-Không nên dùng template này nếu bạn cần một project cực nhỏ chỉ có 1 đến 2 component demo. Khi đó `create-next-app` mặc định là đủ.
+KhĂ´ng nĂªn dĂ¹ng template nĂ y náº¿u báº¡n cáº§n má»™t project cá»±c nhá» chá»‰ cĂ³ 1 Ä‘áº¿n 2 component demo. Khi Ä‘Ă³ `create-next-app` máº·c Ä‘á»‹nh lĂ  Ä‘á»§.
 
-## 3. Khi nào nên chọn Next.js thay vì React + Vite?
+## 3. Khi nĂ o nĂªn chá»n Next.js thay vĂ¬ React + Vite?
 
-Nên chọn **Next.js** khi bạn muốn:
+NĂªn chá»n **Next.js** khi báº¡n muá»‘n:
 
 - routing theo file/folder
-- layout lồng nhau
+- layout lá»“ng nhau
 - metadata theo route
-- khả năng mở rộng sang SSR, SSG hoặc full-stack sau này
-- tổ chức app theo App Router ngay từ đầu
+- kháº£ nÄƒng má»Ÿ rá»™ng sang SSR, SSG hoáº·c full-stack sau nĂ y
+- tá»• chá»©c app theo App Router ngay tá»« Ä‘áº§u
 
-Nên chọn **React + Vite** nếu bạn chỉ cần một SPA client-side rất gọn, không cần cơ chế route/layout kiểu Next.js, và muốn setup tối thiểu hơn.
+NĂªn chá»n **React + Vite** náº¿u báº¡n chá»‰ cáº§n má»™t SPA client-side ráº¥t gá»n, khĂ´ng cáº§n cÆ¡ cháº¿ route/layout kiá»ƒu Next.js, vĂ  muá»‘n setup tá»‘i thiá»ƒu hÆ¡n.
 
-Project này đang đi theo hướng **Next.js App Router**, không phải `React + Vite + React Router`.
+Project nĂ y Ä‘ang Ä‘i theo hÆ°á»›ng **Next.js App Router**, khĂ´ng pháº£i `React + Vite + React Router`.
 
-## 4. Cài và chạy project
+## 4. CĂ i vĂ  cháº¡y project
 
-### Yêu cầu
+### YĂªu cáº§u
 
 - Node.js 20+
 - npm 10+
 
-### Cài dependency
+### CĂ i dependency
 
 ```bash
 npm install
 ```
 
-### Chạy môi trường dev
+### Cháº¡y mĂ´i trÆ°á»ng dev
 
 ```bash
 npm run dev
@@ -87,7 +87,7 @@ npm run dev
 npm run build
 ```
 
-### Chạy production server
+### Cháº¡y production server
 
 ```bash
 npm run start
@@ -99,73 +99,73 @@ npm run start
 npm run lint
 ```
 
-## 5. Cấu trúc thư mục hiện tại
+## 5. Cáº¥u trĂºc thÆ° má»¥c hiá»‡n táº¡i
 
 ```text
 app/
-├─ (auth)/
-│  └─ Auth.md
-├─ (dashboard)/
-│  └─ Dashbaord.md
-├─ (public)/
-│  ├─ layout.tsx
-│  └─ page.tsx
-└─ globals.css
+â”œâ”€ (auth)/
+â”‚  â””â”€ Auth.md
+â”œâ”€ (dashboard)/
+â”‚  â””â”€ Dashbaord.md
+â”œâ”€ (public)/
+â”‚  â”œâ”€ layout.tsx
+â”‚  â””â”€ page.tsx
+â””â”€ globals.css
 
 components/
-├─ layouts/
-│  ├─ (dashboard)/
-│  │  └─ dashboeard.md
-│  ├─ (public)/
-│  │  ├─ Footer/
-│  │  │  └─ PublicFooter.tsx
-│  │  ├─ Navbar/
-│  │  │  └─ PublicNavbar.tsx
-│  │  └─ PublicSetup.tsx
-│  └─ @base/
-│     ├─ Footer/
-│     │  └─ BaseFooter.tsx
-│     └─ Navbar/
-│        └─ BaseNavbar.tsx
-└─ pages/
-   └─ MainPage/
-      └─ Index.tsx
+â”œâ”€ layouts/
+â”‚  â”œâ”€ (dashboard)/
+â”‚  â”‚  â””â”€ dashboeard.md
+â”‚  â”œâ”€ (public)/
+â”‚  â”‚  â”œâ”€ Footer/
+â”‚  â”‚  â”‚  â””â”€ PublicFooter.tsx
+â”‚  â”‚  â”œâ”€ Navbar/
+â”‚  â”‚  â”‚  â””â”€ PublicNavbar.tsx
+â”‚  â”‚  â””â”€ PublicSetup.tsx
+â”‚  â””â”€ @base/
+â”‚     â”œâ”€ Footer/
+â”‚     â”‚  â””â”€ BaseFooter.tsx
+â”‚     â””â”€ Navbar/
+â”‚        â””â”€ BaseNavbar.tsx
+â””â”€ pages/
+   â””â”€ MainPage/
+      â””â”€ Index.tsx
 
 constants/
 hooks/
 libs/
 middlewares/
 public/
-├─ img/
-│  └─ img.md
+â”œâ”€ img/
+â”‚  â””â”€ img.md
 services/
 store/
 types/
 utils/
 ```
 
-## 6. Ý nghĩa chính của từng phần
+## 6. Ă nghÄ©a chĂ­nh cá»§a tá»«ng pháº§n
 
-- `app/`: nơi chứa route theo chuẩn App Router của Next.js
-- `app/(public)`: khu vực public hiện đang được render thật
-- `app/(auth)`: nơi chuẩn bị cho các route xác thực
-- `app/(dashboard)`: nơi chuẩn bị cho các route sau đăng nhập
-- `components/layouts/@base`: các khung layout gốc, chỉ lo phần shell
-- `components/layouts/(public)`: các layout component dành riêng cho public area
-- `components/pages`: UI page-level đã tách khỏi route file
-- `constants`: nơi để hằng số cố định
-- `hooks`: nơi để custom hooks
-- `libs`: nơi để setup thư viện dùng chung
-- `middlewares`: nơi để helper cho middleware hoặc logic guard
-- `services`: nơi để logic gọi API hoặc orchestration dữ liệu
-- `store`: nơi để state dùng chung nếu project cần
-- `types`: nơi để type/interface dùng chung
-- `utils`: nơi để helper function thuần
-- `public/img`: nơi để static image phục vụ trực tiếp qua URL
+- `app/`: nÆ¡i chá»©a route theo chuáº©n App Router cá»§a Next.js
+- `app/(public)`: khu vá»±c public hiá»‡n Ä‘ang Ä‘Æ°á»£c render tháº­t
+- `app/(auth)`: nÆ¡i chuáº©n bá»‹ cho cĂ¡c route xĂ¡c thá»±c
+- `app/(dashboard)`: nÆ¡i chuáº©n bá»‹ cho cĂ¡c route sau Ä‘Äƒng nháº­p
+- `components/layouts/@base`: cĂ¡c khung layout gá»‘c, chá»‰ lo pháº§n shell
+- `components/layouts/(public)`: cĂ¡c layout component dĂ nh riĂªng cho public area
+- `components/pages`: UI page-level Ä‘Ă£ tĂ¡ch khá»i route file
+- `constants`: nÆ¡i Ä‘á»ƒ háº±ng sá»‘ cá»‘ Ä‘á»‹nh
+- `hooks`: nÆ¡i Ä‘á»ƒ custom hooks
+- `libs`: nÆ¡i Ä‘á»ƒ setup thÆ° viá»‡n dĂ¹ng chung
+- `middlewares`: nÆ¡i Ä‘á»ƒ helper cho middleware hoáº·c logic guard
+- `services`: nÆ¡i Ä‘á»ƒ logic gá»i API hoáº·c orchestration dá»¯ liá»‡u
+- `store`: nÆ¡i Ä‘á»ƒ state dĂ¹ng chung náº¿u project cáº§n
+- `types`: nÆ¡i Ä‘á»ƒ type/interface dĂ¹ng chung
+- `utils`: nÆ¡i Ä‘á»ƒ helper function thuáº§n
+- `public/img`: nÆ¡i Ä‘á»ƒ static image phá»¥c vá»¥ trá»±c tiáº¿p qua URL
 
-## 7. Luồng render hiện tại của app
+## 7. Luá»“ng render hiá»‡n táº¡i cá»§a app
 
-Luồng cơ bản hiện tại:
+Luá»“ng cÆ¡ báº£n hiá»‡n táº¡i:
 
 ```text
 Request "/"
@@ -179,47 +179,47 @@ Request "/"
 -> BaseFooter
 ```
 
-Ý nghĩa:
+Ă nghÄ©a:
 
-- `layout.tsx` lo khung ngoài cùng của route group
-- `PublicSetup.tsx` compose navbar, nội dung và footer
-- `PublicNavbar.tsx` và `PublicFooter.tsx` truyền nội dung vào base layout
-- `BaseNavbar.tsx` và `BaseFooter.tsx` chỉ là khung nhận `props`
-- `page.tsx` chỉ render page component chính
+- `layout.tsx` lo khung ngoĂ i cĂ¹ng cá»§a route group
+- `PublicSetup.tsx` compose navbar, ná»™i dung vĂ  footer
+- `PublicNavbar.tsx` vĂ  `PublicFooter.tsx` truyá»n ná»™i dung vĂ o base layout
+- `BaseNavbar.tsx` vĂ  `BaseFooter.tsx` chá»‰ lĂ  khung nháº­n `props`
+- `page.tsx` chá»‰ render page component chĂ­nh
 
-## 8. Quy ước layout hiện tại
+## 8. Quy Æ°á»›c layout hiá»‡n táº¡i
 
-Project đang đi theo hướng:
+Project Ä‘ang Ä‘i theo hÆ°á»›ng:
 
-- `@base` chỉ là khung
-- layout cụ thể sẽ truyền nội dung vào base qua `props`
-- phần setup theo khu vực như `public` sẽ là nơi gọi navbar, footer và bọc `children`
+- `@base` chá»‰ lĂ  khung
+- layout cá»¥ thá»ƒ sáº½ truyá»n ná»™i dung vĂ o base qua `props`
+- pháº§n setup theo khu vá»±c nhÆ° `public` sáº½ lĂ  nÆ¡i gá»i navbar, footer vĂ  bá»c `children`
 
-Ví dụ:
+VĂ­ dá»¥:
 
-- `BaseNavbar.tsx`: nhận `brand`, `action`
-- `BaseFooter.tsx`: nhận `left`, `right`
-- `PublicNavbar.tsx`: truyền brand/action cụ thể cho public area
-- `PublicFooter.tsx`: truyền nội dung footer cụ thể cho public area
+- `BaseNavbar.tsx`: nháº­n `brand`, `action`
+- `BaseFooter.tsx`: nháº­n `left`, `right`
+- `PublicNavbar.tsx`: truyá»n brand/action cá»¥ thá»ƒ cho public area
+- `PublicFooter.tsx`: truyá»n ná»™i dung footer cá»¥ thá»ƒ cho public area
 - `PublicSetup.tsx`: compose `PublicNavbar`, `children`, `PublicFooter`
 
-Cách chia này giúp:
+CĂ¡ch chia nĂ y giĂºp:
 
-- base component sạch hơn
-- layout dễ tái sử dụng
-- nội dung theo từng khu vực không bị cứng trong base
+- base component sáº¡ch hÆ¡n
+- layout dá»… tĂ¡i sá»­ dá»¥ng
+- ná»™i dung theo tá»«ng khu vá»±c khĂ´ng bá»‹ cá»©ng trong base
 
-## 9. Tailwind trong project này
+## 9. Tailwind trong project nĂ y
 
-Project hiện dùng **Tailwind CSS 4** qua CSS import:
+Project hiá»‡n dĂ¹ng **Tailwind CSS 4** qua CSS import:
 
 ```css
 @import "tailwindcss";
 ```
 
-Hiện tại project chưa dùng `@tailwindcss/vite` vì đây là repo Next.js, không phải Vite app.
+Hiá»‡n táº¡i project chÆ°a dĂ¹ng `@tailwindcss/vite` vĂ¬ Ä‘Ă¢y lĂ  repo Next.js, khĂ´ng pháº£i Vite app.
 
-Nên dùng Tailwind trong repo này cho:
+NĂªn dĂ¹ng Tailwind trong repo nĂ y cho:
 
 - layout
 - spacing
@@ -227,42 +227,42 @@ Nên dùng Tailwind trong repo này cho:
 - border
 - responsive
 
-Khi project lớn hơn, có thể chuẩn hóa tiếp:
+Khi project lá»›n hÆ¡n, cĂ³ thá»ƒ chuáº©n hĂ³a tiáº¿p:
 
 - color tokens
 - spacing tokens
 - reusable wrappers
 - component variants
 
-## 10. TypeScript trong project này
+## 10. TypeScript trong project nĂ y
 
-Project đang bật TypeScript với cấu hình đủ dùng cho Next.js:
+Project Ä‘ang báº­t TypeScript vá»›i cáº¥u hĂ¬nh Ä‘á»§ dĂ¹ng cho Next.js:
 
 - `strict: true`
 - alias `@/*`
 - `moduleResolution: "bundler"`
 - plugin Next.js trong `tsconfig.json`
 
-Nên giữ nguyên hướng:
+NĂªn giá»¯ nguyĂªn hÆ°á»›ng:
 
-- type dùng chung đặt trong `types/`
-- prop type đặt gần component nếu chỉ dùng cục bộ
-- tránh để type rải rác không có tổ chức
+- type dĂ¹ng chung Ä‘áº·t trong `types/`
+- prop type Ä‘áº·t gáº§n component náº¿u chá»‰ dĂ¹ng cá»¥c bá»™
+- trĂ¡nh Ä‘á»ƒ type ráº£i rĂ¡c khĂ´ng cĂ³ tá»• chá»©c
 
-## 11. Quy tắc tổ chức code nên giữ
+## 11. Quy táº¯c tá»• chá»©c code nĂªn giá»¯
 
-- `page.tsx` chỉ nên lo ghép màn hình ở mức route
-- `components/pages` nên chứa UI theo page nhưng tách khỏi route file
-- `components/layouts` chỉ nên lo shell và structure
-- `@base` không nên chứa nội dung cứng theo từng khu vực
-- `services` không render UI
-- `hooks` không chứa JSX
-- `utils` nên là pure function càng nhiều càng tốt
-- `types` nên là nơi tập trung contract dùng chung
+- `page.tsx` chá»‰ nĂªn lo ghĂ©p mĂ n hĂ¬nh á»Ÿ má»©c route
+- `components/pages` nĂªn chá»©a UI theo page nhÆ°ng tĂ¡ch khá»i route file
+- `components/layouts` chá»‰ nĂªn lo shell vĂ  structure
+- `@base` khĂ´ng nĂªn chá»©a ná»™i dung cá»©ng theo tá»«ng khu vá»±c
+- `services` khĂ´ng render UI
+- `hooks` khĂ´ng chá»©a JSX
+- `utils` nĂªn lĂ  pure function cĂ ng nhiá»u cĂ ng tá»‘t
+- `types` nĂªn lĂ  nÆ¡i táº­p trung contract dĂ¹ng chung
 
-## 12. Hướng mở rộng hợp lý cho repo này
+## 12. HÆ°á»›ng má»Ÿ rá»™ng há»£p lĂ½ cho repo nĂ y
 
-Từ base hiện tại, bạn có thể mở rộng thêm:
+Tá»« base hiá»‡n táº¡i, báº¡n cĂ³ thá»ƒ má»Ÿ rá»™ng thĂªm:
 
 - auth flow
 - protected dashboard routes
@@ -270,60 +270,61 @@ Từ base hiện tại, bạn có thể mở rộng thêm:
 - API client wrapper
 - env config
 - global store
-- form library như React Hook Form
-- schema validation bằng Zod
-- loading state và error boundary
+- form library nhÆ° React Hook Form
+- schema validation báº±ng Zod
+- loading state vĂ  error boundary
 - toast system
 - theme switch
 
-Nếu app lớn dần, có thể bổ sung thêm:
+Náº¿u app lá»›n dáº§n, cĂ³ thá»ƒ bá»• sung thĂªm:
 
 - `features/`
 - `schemas/`
 - `providers/`
 - `api/`
 
-## 13. Khi nào nên tách theo feature?
+## 13. Khi nĂ o nĂªn tĂ¡ch theo feature?
 
-Nên tách theo feature khi:
+NĂªn tĂ¡ch theo feature khi:
 
-- app có nhiều module nghiệp vụ rõ ràng
-- mỗi module có page, service, type, hook riêng
-- team có nhiều người cùng làm song song
+- app cĂ³ nhiá»u module nghiá»‡p vá»¥ rĂµ rĂ ng
+- má»—i module cĂ³ page, service, type, hook riĂªng
+- team cĂ³ nhiá»u ngÆ°á»i cĂ¹ng lĂ m song song
 
-Ví dụ sau này:
+VĂ­ dá»¥ sau nĂ y:
 
 ```text
 features/
-├─ auth/
-├─ dashboard/
-├─ profile/
-└─ orders/
+â”œâ”€ auth/
+â”œâ”€ dashboard/
+â”œâ”€ profile/
+â””â”€ orders/
 ```
 
-Nếu project vẫn nhỏ, giữ cấu trúc hiện tại là đủ và dễ đọc hơn.
+Náº¿u project váº«n nhá», giá»¯ cáº¥u trĂºc hiá»‡n táº¡i lĂ  Ä‘á»§ vĂ  dá»… Ä‘á»c hÆ¡n.
 
-## 14. Checklist khi dùng template này để bắt đầu project mới
+## 14. Checklist khi dĂ¹ng template nĂ y Ä‘á»ƒ báº¯t Ä‘áº§u project má»›i
 
-- đổi tên metadata và brand theo dự án thật
-- thêm route thật vào `app/(public)`, `app/(auth)`, `app/(dashboard)`
-- bổ sung middleware nếu có protected route
-- thêm service layer để gọi backend
-- chuẩn hóa type dùng chung
-- thêm state management nếu app cần
-- thống nhất naming convention từ đầu
-- giữ `base` là khung, không nhét nội dung nghiệp vụ vào đó
+- Ä‘á»•i tĂªn metadata vĂ  brand theo dá»± Ă¡n tháº­t
+- thĂªm route tháº­t vĂ o `app/(public)`, `app/(auth)`, `app/(dashboard)`
+- bá»• sung middleware náº¿u cĂ³ protected route
+- thĂªm service layer Ä‘á»ƒ gá»i backend
+- chuáº©n hĂ³a type dĂ¹ng chung
+- thĂªm state management náº¿u app cáº§n
+- thá»‘ng nháº¥t naming convention tá»« Ä‘áº§u
+- giá»¯ `base` lĂ  khung, khĂ´ng nhĂ©t ná»™i dung nghiá»‡p vá»¥ vĂ o Ä‘Ă³
 
-## 15. Tóm tắt
+## 15. TĂ³m táº¯t
 
-Nếu bạn muốn một base Next.js có:
+Náº¿u báº¡n muá»‘n má»™t base Next.js cĂ³:
 
 - App Router
-- cấu trúc layout rõ
-- route group rõ
-- component base/public tách vai trò rõ
-- sẵn chỗ để scale tiếp
+- cáº¥u trĂºc layout rĂµ
+- route group rĂµ
+- component base/public tĂ¡ch vai trĂ² rĂµ
+- sáºµn chá»— Ä‘á»ƒ scale tiáº¿p
 
-thì repo này đang đi đúng hướng.
+thĂ¬ repo nĂ y Ä‘ang Ä‘i Ä‘Ăºng hÆ°á»›ng.
 
-Nó không còn là template `React + Vite + React Router`, mà là một **Next.js client-oriented template** với cấu trúc đủ sạch để phát triển tiếp thành website, dashboard hoặc frontend app có nhiều khu vực giao diện.
+NĂ³ khĂ´ng cĂ²n lĂ  template `React + Vite + React Router`, mĂ  lĂ  má»™t **Next.js client-oriented template** vá»›i cáº¥u trĂºc Ä‘á»§ sáº¡ch Ä‘á»ƒ phĂ¡t triá»ƒn tiáº¿p thĂ nh website, dashboard hoáº·c frontend app cĂ³ nhiá»u khu vá»±c giao diá»‡n.
+

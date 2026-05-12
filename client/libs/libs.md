@@ -1,19 +1,20 @@
 # `libs`
 
-## Purpose / Mục đích
+## Purpose / Má»¥c Ä‘Ă­ch
 - English: This folder contains low-level library setup and integration code that connects the app to third-party packages or shared internal infrastructure.
-- Tiếng Việt: Thư mục này chứa phần thiết lập thư viện mức thấp và mã tích hợp để kết nối app với package bên thứ ba hoặc hạ tầng dùng chung nội bộ.
+- Tiáº¿ng Viá»‡t: ThÆ° má»¥c nĂ y chá»©a pháº§n thiáº¿t láº­p thÆ° viá»‡n má»©c tháº¥p vĂ  mĂ£ tĂ­ch há»£p Ä‘á»ƒ káº¿t ná»‘i app vá»›i package bĂªn thá»© ba hoáº·c háº¡ táº§ng dĂ¹ng chung ná»™i bá»™.
 
-## What should live here / Nên đặt gì ở đây
+## What should live here / NĂªn Ä‘áº·t gĂ¬ á»Ÿ Ä‘Ă¢y
 - English: HTTP client setup, authentication adapters, date libraries, logger setup, environment readers, and package wrappers.
-- Tiếng Việt: Cấu hình HTTP client, adapter xác thực, thư viện ngày giờ, thiết lập logger, phần đọc biến môi trường và wrapper cho package.
+- Tiáº¿ng Viá»‡t: Cáº¥u hĂ¬nh HTTP client, adapter xĂ¡c thá»±c, thÆ° viá»‡n ngĂ y giá», thiáº¿t láº­p logger, pháº§n Ä‘á»c biáº¿n mĂ´i trÆ°á»ng vĂ  wrapper cho package.
 - English: Thin integration code that other layers import.
-- Tiếng Việt: Mã tích hợp mỏng để các tầng khác import lại sử dụng.
+- Tiáº¿ng Viá»‡t: MĂ£ tĂ­ch há»£p má»ng Ä‘á»ƒ cĂ¡c táº§ng khĂ¡c import láº¡i sá»­ dá»¥ng.
 
-## What should not live here / Không nên đặt ở đây
+## What should not live here / KhĂ´ng nĂªn Ä‘áº·t á»Ÿ Ä‘Ă¢y
 - English: Route UI, page components, or business use-case orchestration.
-- Tiếng Việt: Giao diện route, component trang hoặc phần điều phối use-case nghiệp vụ.
+- Tiáº¿ng Viá»‡t: Giao diá»‡n route, component trang hoáº·c pháº§n Ä‘iá»u phá»‘i use-case nghiá»‡p vá»¥.
 
-## Example / Ví dụ
+## Example / VĂ­ dá»¥
 - English: `axios.ts`, `auth-client.ts`, `env.ts`, `dayjs.ts`
-- Tiếng Việt: `axios.ts`, `auth-client.ts`, `env.ts`, `dayjs.ts`
+- Tiáº¿ng Viá»‡t: `axios.ts`, `auth-client.ts`, `env.ts`, `dayjs.ts`
+

@@ -1,19 +1,20 @@
 # `app/(auth)`
 
-## Purpose / Mục đích
+## Purpose / Má»¥c Ä‘Ă­ch
 - English: This folder contains authentication routes such as login, register, forgot password, reset password, or verify account screens.
-- Tiếng Việt: Thư mục này chứa các route liên quan đến xác thực như đăng nhập, đăng ký, quên mật khẩu, đặt lại mật khẩu hoặc xác minh tài khoản.
+- Tiáº¿ng Viá»‡t: ThÆ° má»¥c nĂ y chá»©a cĂ¡c route liĂªn quan Ä‘áº¿n xĂ¡c thá»±c nhÆ° Ä‘Äƒng nháº­p, Ä‘Äƒng kĂ½, quĂªn máº­t kháº©u, Ä‘áº·t láº¡i máº­t kháº©u hoáº·c xĂ¡c minh tĂ i khoáº£n.
 
-## What should live here / Nên đặt gì ở đây
+## What should live here / NĂªn Ä‘áº·t gĂ¬ á»Ÿ Ä‘Ă¢y
 - English: Route files like `page.tsx`, nested layouts, loading states, and auth-specific UI pages.
-- Tiếng Việt: Các file route như `page.tsx`, layout lồng nhau, trạng thái loading và các trang giao diện dành riêng cho xác thực.
+- Tiáº¿ng Viá»‡t: CĂ¡c file route nhÆ° `page.tsx`, layout lá»“ng nhau, tráº¡ng thĂ¡i loading vĂ  cĂ¡c trang giao diá»‡n dĂ nh riĂªng cho xĂ¡c thá»±c.
 - English: Form pages that only exist for signing in or managing access.
-- Tiếng Việt: Các trang form chỉ phục vụ đăng nhập hoặc quản lý quyền truy cập.
+- Tiáº¿ng Viá»‡t: CĂ¡c trang form chá»‰ phá»¥c vá»¥ Ä‘Äƒng nháº­p hoáº·c quáº£n lĂ½ quyá»n truy cáº­p.
 
-## What should not live here / Không nên đặt ở đây
+## What should not live here / KhĂ´ng nĂªn Ä‘áº·t á»Ÿ Ä‘Ă¢y
 - English: Shared business logic, API clients, or reusable validation helpers. Those should go into `services`, `libs`, `utils`, or `types`.
-- Tiếng Việt: Logic nghiệp vụ dùng chung, API client hoặc helper validation tái sử dụng. Các phần đó nên đặt trong `services`, `libs`, `utils` hoặc `types`.
+- Tiáº¿ng Viá»‡t: Logic nghiá»‡p vá»¥ dĂ¹ng chung, API client hoáº·c helper validation tĂ¡i sá»­ dá»¥ng. CĂ¡c pháº§n Ä‘Ă³ nĂªn Ä‘áº·t trong `services`, `libs`, `utils` hoáº·c `types`.
 
-## Example / Ví dụ
+## Example / VĂ­ dá»¥
 - English: `app/(auth)/login/page.tsx`, `app/(auth)/register/page.tsx`
-- Tiếng Việt: `app/(auth)/login/page.tsx`, `app/(auth)/register/page.tsx`
+- Tiáº¿ng Viá»‡t: `app/(auth)/login/page.tsx`, `app/(auth)/register/page.tsx`
+
