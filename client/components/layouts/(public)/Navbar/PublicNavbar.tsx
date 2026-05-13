@@ -1,9 +1,14 @@
 ﻿'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { FiSearch } from 'react-icons/fi';
 import { useCategories } from '@/hooks/useCategories';
+import { useProducts } from '@/hooks/useProducts';
+import { DEFAULT_PRODUCT_IMAGE } from '@/constants/media';
+import { formatVnd } from '@/utils/format';
 
 type NavCategory = {
   id: string;
@@ -23,8 +28,21 @@ type NavItem = {
   children?: NavChild[];
 };
 
+
+
+function normalizeText(value: string) {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
 export default function PublicNavbar() {
   const { categories } = useCategories();
+  const { products } = useProducts();
+  const router = useRouter();
+  const [searchKeyword, setSearchKeyword] = useState('');
 
   const { primaryCategoryItems, overflowCategoryItems } = useMemo(() => {
     const excludedSlugs = new Set(['gioi_thieu', 'blog']);
@@ -41,23 +59,35 @@ export default function PublicNavbar() {
     const topLevel = navCategories.filter((category) => !category.parent_id);
 
     const topLevelItems = topLevel.map((category): NavItem => ({
-        label: category.name,
-        href: `/${category.slug}`,
-        children: (childrenByParent.get(category.id) ?? []).map((child): NavChild => ({
-          label: child.name,
-          href: `/${child.slug}`,
-        })),
-      }));
+      label: category.name,
+      href: `/${category.slug}`,
+      children: (childrenByParent.get(category.id) ?? []).map((child): NavChild => ({
+        label: child.name,
+        href: `/${child.slug}`,
+      })),
+    }));
 
     return {
       primaryCategoryItems: topLevelItems.slice(0, 5),
       overflowCategoryItems: topLevelItems.slice(5),
     };
   }, [categories]);
+  const searchResults = useMemo(() => {
+    const keyword = normalizeText(searchKeyword);
+    if (!keyword) return [];
+    return products
+      .filter((product) => {
+        const name = normalizeText(product.name || '');
+        const slug = normalizeText(product.slug || '');
+        const shortDescription = normalizeText(product.short_description || '');
+        return name.includes(keyword) || slug.includes(keyword) || shortDescription.includes(keyword);
+      })
+      .slice(0, 6);
+  }, [products, searchKeyword]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#e8e1d5] bg-white">
-      <div className="flex h-26 w-full items-center justify-between px-12">
+      <div className="relative z-30 flex h-26 w-full items-center justify-between px-12">
         <div className="flex min-w-65 items-center gap-4">
           <Image
             src="/logo.png"
@@ -72,7 +102,7 @@ export default function PublicNavbar() {
               Scentora Candle
             </h1>
             <p className="text-[12px] uppercase tracking-[0.25em] text-[#b8933b]">
-              Xuong huong thom cao cap
+              Xưởng hương thơm cao cấp
             </p>
           </div>
         </div>
@@ -98,7 +128,7 @@ export default function PublicNavbar() {
               </Link>
 
               {item.children && item.children.length > 0 ? (
-                <div className="invisible absolute left-1/2 top-full w-[240px] -translate-x-1/2 translate-y-2 border border-[#eee2d2] bg-white px-4 py-4 opacity-0 shadow-xl transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                <div className="invisible absolute left-1/2 top-full z-40 w-60 -translate-x-1/2 translate-y-2 border border-[#eee2d2] bg-white px-4 py-4 opacity-0 shadow-xl transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                   <ul className="space-y-2">
                     {item.children.map((child) => (
                       <li key={child.label}>
@@ -123,7 +153,7 @@ export default function PublicNavbar() {
                 <span className="text-[11px] transition group-hover:rotate-180">v</span>
               </button>
 
-              <div className="invisible absolute left-1/2 top-full w-[220px] -translate-x-1/2 translate-y-2 border border-[#eee2d2] bg-white px-3 py-3 opacity-0 shadow-xl transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+              <div className="invisible absolute left-1/2 top-full z-40 w-55 -translate-x-1/2 translate-y-2 border border-[#eee2d2] bg-white px-3 py-3 opacity-0 shadow-xl transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
                 <ul className="space-y-1">
                   {overflowCategoryItems.map((item) => (
                     <li key={item.label} className="group/item relative">
@@ -136,7 +166,7 @@ export default function PublicNavbar() {
                       </Link>
 
                       {item.children && item.children.length > 0 ? (
-                        <div className="invisible absolute left-full top-0 ml-1 w-[210px] border border-[#eee2d2] bg-white px-3 py-3 opacity-0 shadow-xl transition-all duration-150 group-hover/item:visible group-hover/item:opacity-100">
+                        <div className="invisible absolute left-full top-0 z-40 ml-1 w-52.5 border border-[#eee2d2] bg-white px-3 py-3 opacity-0 shadow-xl transition-all duration-150 group-hover/item:visible group-hover/item:opacity-100">
                           <ul className="space-y-1">
                             {item.children.map((child) => (
                               <li key={child.label}>
@@ -177,21 +207,86 @@ export default function PublicNavbar() {
           </div>
         </nav>
 
-        <div className="flex min-w-45 items-center justify-end gap-6 text-[#0B2D4D]">
-          <button className="relative text-2xl">
-            <a
-              href="https://zalo.me/0938962062"
-              target="_blank"
-              className="rounded-full border border-[#35597d] bg-[#0B2D4D] px-5 py-2 text-[13px] font-semibold text-white transition hover:-translate-y-0.5 hover:border-[#d4af37] hover:bg-[#133a61]"
-            >
-              Liên hệ Zalo
-            </a>
-            <span className="absolute -right-3 -top-3 flex h-6 w-6 items-center justify-center rounded-full bg-[#D4AF37] text-[12px] font-bold text-[#0B2D4D]">
-              0
-            </span>
-          </button>
+        <div className="flex min-w-45 items-center justify-end gap-4 text-[#0B2D4D]">
+          <a
+            href="https://zalo.me/0938962062"
+            target="_blank"
+            className="rounded-full border border-[#35597d] bg-[#0B2D4D] px-5 py-2 text-[13px] font-semibold text-white transition hover:-translate-y-0.5 hover:border-[#d4af37] hover:bg-[#133a61]"
+            rel="noreferrer"
+          >
+            Liên hệ Zalo
+          </a>
         </div>
+      </div>
+
+      <div className="relative z-10 border-t border-[#eef2f6] bg-white px-12 py-3">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            const query = searchKeyword.trim();
+            if (!query) return;
+            if (searchResults.length > 0) {
+              router.push(`/san_pham/${searchResults[0].slug}`);
+              return;
+            }
+          }}
+          className="relative mx-auto flex w-full max-w-3xl items-center justify-center"
+        >
+          <div className="group flex h-13 w-full items-center gap-2 rounded-[999px_999px_999px_240px] border border-[#bfd9ef] bg-linear-to-r from-[#edf8ff] via-[#e5f5ff] to-[#d6eeff] pl-5 pr-2 shadow-[0_6px_22px_rgba(26,94,145,0.12),inset_0_1px_0_#fff] transition focus-within:border-[#57a7db]">
+            <span className="text-sm text-[#0B2D4D]/70">
+              <FiSearch />
+            </span>
+            <input
+              value={searchKeyword}
+              onChange={(event) => setSearchKeyword(event.target.value)}
+              placeholder="Tìm sản phẩm theo tên, mùi hương..."
+              className="w-full bg-transparent text-sm text-[#0B2D4D] placeholder:text-[#4a7ca0] outline-none"
+            />
+            <button
+              type="submit"
+              className="rounded-full bg-[#0B2D4D] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#12406b]"
+            >
+              Tìm
+            </button>
+          </div>
+
+          {searchKeyword.trim() ? (
+            <div className="absolute left-0 right-0 top-14.5 z-50 overflow-hidden rounded-2xl border border-[#d4e7f5] bg-white shadow-[0_18px_42px_rgba(11,45,77,0.16)]">
+              {searchResults.length > 0 ? (
+                <ul className="max-h-96 overflow-auto py-2">
+                  {searchResults.map((item) => (
+                    <li key={item.id}>
+                      <Link
+                        href={`/san_pham/${item.slug}`}
+                        onClick={() => setSearchKeyword('')}
+                        className="flex items-center gap-3 px-3 py-2 transition hover:bg-[#f2f9ff]"
+                      >
+                        <div className="h-14 w-14 overflow-hidden rounded-lg border border-[#e2edf6]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.thumbnail_url || DEFAULT_PRODUCT_IMAGE}
+                            alt={item.name}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-[#0B2D4D]">{item.name}</p>
+                          <p className="text-xs text-[#5f6b7a]">{formatVnd(item.price)}</p>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="px-4 py-4 text-sm text-[#5f6b7a]">Không tìm thấy sản phẩm phù hợp.</p>
+              )}
+            </div>
+          ) : null}
+        </form>
       </div>
     </header>
   );
 }
+

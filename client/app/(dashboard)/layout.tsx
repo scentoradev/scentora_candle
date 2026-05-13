@@ -2,7 +2,8 @@
 import type { LayoutProps } from '@/components/layouts/shared';
 
 const dashboardLinks = [
-  { href: '/admin', label: 'Trang chủ', kind: 'outline' as const },
+  { href: '/', label: 'Về trang chủ', kind: 'outline' as const },
+  { href: '/admin', label: 'Trang quản trị', kind: 'outline' as const },
   { href: '/admin/thong_ke', label: 'Thống kê', kind: 'solid' as const },
 ];
 

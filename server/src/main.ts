@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { PG_POOL } from './database/pg.provider';
 import { setupSwagger, SWAGGER_PATH } from './swagger/swagger.config';
@@ -20,6 +21,8 @@ function isPgPool(value: unknown): value is QueryablePool {
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
+  app.use(json({ limit: '2mb' }));
+  app.use(urlencoded({ extended: true, limit: '2mb' }));
   app.enableCors({
     origin: true,
     credentials: true,
