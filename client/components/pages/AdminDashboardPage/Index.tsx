@@ -31,6 +31,14 @@ type ContentPage = {
   is_published: boolean;
   sort_order: number;
 };
+type ManagedUser = {
+  id: string;
+  email: string;
+  full_name?: string | null;
+  role: 'admin';
+  created_at?: string;
+  updated_at?: string;
+};
 
 export default function AdminPage() {
   const router = useRouter();
@@ -61,6 +69,7 @@ export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
   const [contentPages, setContentPages] = useState<ContentPage[]>([]);
+  const [users, setUsers] = useState<ManagedUser[]>([]);
 
   const [newCategory, setNewCategory] = useState({ name: '', slug: '', description: '', parentId: '' });
   const [newProduct, setNewProduct] = useState({
@@ -101,6 +110,10 @@ export default function AdminPage() {
   const [newBlog, setNewBlog] = useState({ title: '', slug: '', summary: '', content: '', thumbnailUrl: '', sortOrder: '0', isPublished: true });
   const [editingContentId, setEditingContentId] = useState('');
   const [editingContent, setEditingContent] = useState({ type: 'policy' as 'policy' | 'blog', title: '', slug: '', summary: '', content: '', thumbnailUrl: '', sortOrder: '0', isPublished: true });
+  const [newUser, setNewUser] = useState({ email: '', fullName: '', password: '' });
+  const [editingUserId, setEditingUserId] = useState('');
+  const [editingUser, setEditingUser] = useState({ fullName: '', password: '' });
+  const [activeAdminSection, setActiveAdminSection] = useState<'catalog' | 'content' | 'users'>('catalog');
 
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c.name])), [categories]);
   const orderedCategories = useMemo(
@@ -167,18 +180,24 @@ export default function AdminPage() {
     () => contentPages.filter((item) => item.type === 'blog').sort((a, b) => a.sort_order - b.sort_order),
     [contentPages],
   );
+  const sortedUsers = useMemo(
+    () => [...users].sort((a, b) => (a.created_at && b.created_at ? (a.created_at < b.created_at ? 1 : -1) : 0)),
+    [users],
+  );
 
   const loadAll = async () => {
-    const [categoriesRes, productsRes, productImagesRes, contentPagesRes] = await Promise.all([
+    const [categoriesRes, productsRes, productImagesRes, contentPagesRes, usersRes] = await Promise.all([
       apiGet<ApiListResponse<Category>>('/categories'),
       apiGet<ApiListResponse<Product>>('/products'),
       apiGet<ApiListResponse<ProductImage>>('/product_images'),
       apiGet<ApiListResponse<ContentPage>>('/content_pages'),
+      apiGet<ApiListResponse<ManagedUser>>('/users', true),
     ]);
     setCategories(categoriesRes.items ?? categoriesRes.data ?? []);
     setProducts(productsRes.items ?? productsRes.data ?? []);
     setProductImages(productImagesRes.items ?? productImagesRes.data ?? []);
     setContentPages(contentPagesRes.items ?? contentPagesRes.data ?? []);
+    setUsers(usersRes.items ?? usersRes.data ?? []);
   };
 
   const parseGalleryUrls = (value: string) =>
@@ -326,6 +345,28 @@ export default function AdminPage() {
     );
   };
 
+  const submitUser = async (e: FormEvent) => {
+    e.preventDefault();
+    askConfirm('Xác nhận lưu', 'Bạn có chắc muốn thêm tài khoản admin này?', () => {
+      closeConfirm();
+      void run(async () => {
+        await apiPost(
+          '/users',
+          {
+            data: {
+              email: newUser.email,
+              full_name: newUser.fullName || null,
+              password: newUser.password,
+              role: 'admin',
+            },
+          },
+          true,
+        );
+        setNewUser({ email: '', fullName: '', password: '' });
+      }, 'Đã thêm tài khoản admin');
+    });
+  };
+
   if (!sessionUser) {
     return <main className="rounded-2xl border border-[#d8cdb9] bg-white p-8">Đang kiểm tra đăng nhập...</main>;
   }
@@ -372,76 +413,68 @@ export default function AdminPage() {
         {notice ? <p className="mt-4 text-sm font-semibold text-[#1f3158]">{notice}</p> : null}
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <form onSubmit={submitCategory} className="rounded-3xl border border-[#d8cdb9] bg-white p-5">
-          <h3 className="mb-3 text-xl font-bold text-[#0B2D4D]">Thêm danh mục</h3>
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-[#334155]">Tên danh mục</label>
-            <input value={newCategory.name} onChange={(e) => setNewCategory((v) => ({ ...v, name: e.target.value }))} placeholder="Ví dụ: Nến thơm phòng" className="w-full rounded-xl border px-3 py-2" required />
-            <label className="block text-sm font-medium text-[#334155]">Slug</label>
-            <input value={newCategory.slug} onChange={(e) => setNewCategory((v) => ({ ...v, slug: e.target.value }))} placeholder="Ví dụ: nen_thom_phong" className="w-full rounded-xl border px-3 py-2" required />
-            <label className="block text-sm font-medium text-[#334155]">Mô tả ngắn</label>
-            <input value={newCategory.description} onChange={(e) => setNewCategory((v) => ({ ...v, description: e.target.value }))} placeholder="Mô tả nội dung danh mục" className="w-full rounded-xl border px-3 py-2" />
-            <label className="block text-sm font-medium text-[#334155]">Danh mục cha</label>
-            <select value={newCategory.parentId} onChange={(e) => setNewCategory((v) => ({ ...v, parentId: e.target.value }))} className="w-full rounded-xl border px-3 py-2">
-              <option value="">Không có danh mục cha</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>{category.name}</option>
-              ))}
-            </select>
-            <button disabled={busy} className="rounded-full bg-[#0B2D4D] px-4 py-2 text-sm font-semibold text-white">Lưu danh mục</button>
-          </div>
-        </form>
-
-        <form onSubmit={submitProduct} className="rounded-3xl border border-[#d8cdb9] bg-white p-5">
-          <h3 className="mb-3 text-xl font-bold text-[#0B2D4D]">Thêm sản phẩm</h3>
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-[#334155]">Tên sản phẩm</label>
-            <input value={newProduct.name} onChange={(e) => setNewProduct((v) => ({ ...v, name: e.target.value }))} placeholder="Ví dụ: Nến thơm Lavender" className="w-full rounded-xl border px-3 py-2" required />
-            <label className="block text-sm font-medium text-[#334155]">Slug sản phẩm</label>
-            <input value={newProduct.slug} onChange={(e) => setNewProduct((v) => ({ ...v, slug: e.target.value }))} placeholder="Ví dụ: nen_thom_lavender" className="w-full rounded-xl border px-3 py-2" required />
-            <div className="grid grid-cols-2 gap-3">
-              <label className="text-xs text-[#64748b]">Giá tiền (VND)</label>
-              <label className="text-xs text-[#64748b]">Số lượng</label>
-              <input value={newProduct.price} onChange={(e) => setNewProduct((v) => ({ ...v, price: e.target.value }))} placeholder="Giá tiền" className="w-full rounded-xl border px-3 py-2" required />
-              <input value={newProduct.stock} onChange={(e) => setNewProduct((v) => ({ ...v, stock: e.target.value }))} placeholder="Tồn kho" className="w-full rounded-xl border px-3 py-2" required />
-            </div>
-            <label className="block text-sm font-medium text-[#334155]">Danh mục sản phẩm</label>
-            <select value={newProduct.categoryId} onChange={(e) => setNewProduct((v) => ({ ...v, categoryId: e.target.value }))} className="w-full rounded-xl border px-3 py-2">
-              <option value="">Không gán danh mục</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>{category.name}</option>
-              ))}
-            </select>
-            <label className="block text-sm font-medium text-[#334155]">Mô tả ngắn</label>
-            <RichTextEditor
-              value={newProduct.shortDescription}
-              onChange={(value) => setNewProduct((v) => ({ ...v, shortDescription: value }))}
-              placeholder="1-2 câu mô tả ngắn cho thẻ sản phẩm"
-              minHeight={120}
-            />
-            <label className="block text-sm font-medium text-[#334155]">Mô tả chi tiết</label>
-            <RichTextEditor
-              value={newProduct.description}
-              onChange={(value) => setNewProduct((v) => ({ ...v, description: value }))}
-              placeholder="Nhập mô tả, bôi đen để in đậm/in nghiêng, thêm danh sách..."
-            />
-            <label className="block text-sm font-medium text-[#334155]">Link ảnh đại diện</label>
-            <input value={newProduct.thumbnailUrl} onChange={(e) => setNewProduct((v) => ({ ...v, thumbnailUrl: e.target.value }))} placeholder="https://..." className="w-full rounded-xl border px-3 py-2" />
-            <label className="block text-sm font-medium text-[#334155]">Ảnh phụ (mỗi dòng 1 URL)</label>
-            <textarea
-              value={newProduct.galleryUrls}
-              onChange={(e) => setNewProduct((v) => ({ ...v, galleryUrls: e.target.value }))}
-              placeholder={'https://.../image-1.jpg\nhttps://.../image-2.jpg'}
-              className="min-h-24 w-full rounded-xl border px-3 py-2"
-            />
-            <button disabled={busy} className="rounded-full bg-[#0B2D4D] px-4 py-2 text-sm font-semibold text-white">Lưu sản phẩm</button>
-          </div>
-        </form>
+      <section className="rounded-3xl border border-[#d8cdb9] bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveAdminSection('catalog')}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              activeAdminSection === 'catalog'
+                ? 'bg-[#0B2D4D] text-white'
+                : 'border border-[#d8cdb9] bg-[#fcfaf6] text-[#334155] hover:bg-[#f6efe3]'
+            }`}
+          >
+            Danh mục & Sản phẩm
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveAdminSection('content')}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              activeAdminSection === 'content'
+                ? 'bg-[#0B2D4D] text-white'
+                : 'border border-[#d8cdb9] bg-[#fcfaf6] text-[#334155] hover:bg-[#f6efe3]'
+            }`}
+          >
+            Nội dung & Blog
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveAdminSection('users')}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              activeAdminSection === 'users'
+                ? 'bg-[#0B2D4D] text-white'
+                : 'border border-[#d8cdb9] bg-[#fcfaf6] text-[#334155] hover:bg-[#f6efe3]'
+            }`}
+          >
+            Quản lý user
+          </button>
+        </div>
       </section>
 
+      {activeAdminSection === 'catalog' ? (
+        <>
       <section className="rounded-3xl border border-[#d8cdb9] bg-white p-6">
         <h3 className="mb-5 text-2xl font-bold text-[#0B2D4D]">Danh mục</h3>
+        <form onSubmit={submitCategory} className="mb-5 space-y-3 rounded-2xl border border-[#e7dccb] bg-[#fcfaf6] p-4">
+          <h4 className="text-lg font-bold text-[#0B2D4D]">Thêm danh mục</h4>
+          <div className="grid gap-3 md:grid-cols-2">
+            <input value={newCategory.name} onChange={(e) => setNewCategory((v) => ({ ...v, name: e.target.value }))} placeholder="Tên danh mục" className="rounded-xl border px-3 py-2" required />
+            <input value={newCategory.slug} onChange={(e) => setNewCategory((v) => ({ ...v, slug: e.target.value }))} placeholder="Slug (ví dụ: nen_thom_phong)" className="rounded-xl border px-3 py-2" required />
+          </div>
+          <RichTextEditor
+            value={newCategory.description}
+            onChange={(value) => setNewCategory((v) => ({ ...v, description: value }))}
+            placeholder="Mô tả ngắn danh mục"
+            minHeight={120}
+          />
+          <select value={newCategory.parentId} onChange={(e) => setNewCategory((v) => ({ ...v, parentId: e.target.value }))} className="w-full rounded-xl border px-3 py-2">
+            <option value="">Không có danh mục cha</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>{category.name}</option>
+            ))}
+          </select>
+          <button disabled={busy} className="rounded-full bg-[#0B2D4D] px-4 py-2 text-sm font-semibold text-white">Lưu danh mục</button>
+        </form>
         <div className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           <input
             value={categorySearch}
@@ -511,11 +544,18 @@ export default function AdminPage() {
                 }, 'Đã cập nhật danh mục');
               });
             }}
-            className="mt-5 grid gap-2 md:grid-cols-5"
+            className="mt-5 space-y-3 rounded-2xl border border-[#e7dccb] bg-[#fcfaf6] p-4"
           >
-            <input value={editingCategory.name} onChange={(e) => setEditingCategory((v) => ({ ...v, name: e.target.value }))} className="rounded-xl border px-3 py-2" />
-            <input value={editingCategory.slug} onChange={(e) => setEditingCategory((v) => ({ ...v, slug: e.target.value }))} className="rounded-xl border px-3 py-2" />
-            <input value={editingCategory.description} onChange={(e) => setEditingCategory((v) => ({ ...v, description: e.target.value }))} className="rounded-xl border px-3 py-2" />
+            <div className="grid gap-3 md:grid-cols-2">
+              <input value={editingCategory.name} onChange={(e) => setEditingCategory((v) => ({ ...v, name: e.target.value }))} className="rounded-xl border px-3 py-2" />
+              <input value={editingCategory.slug} onChange={(e) => setEditingCategory((v) => ({ ...v, slug: e.target.value }))} className="rounded-xl border px-3 py-2" />
+            </div>
+            <RichTextEditor
+              value={editingCategory.description}
+              onChange={(value) => setEditingCategory((v) => ({ ...v, description: value }))}
+              placeholder="Mô tả ngắn danh mục"
+              minHeight={120}
+            />
             <select value={editingCategory.parentId} onChange={(e) => setEditingCategory((v) => ({ ...v, parentId: e.target.value }))} className="rounded-xl border px-3 py-2">
               <option value="">Không có danh mục cha</option>
               {categories.filter((category) => category.id !== editingCategoryId).map((category) => (
@@ -602,6 +642,42 @@ export default function AdminPage() {
 
       <section className="rounded-3xl border border-[#d8cdb9] bg-white p-6">
         <h3 className="mb-5 text-2xl font-bold text-[#0B2D4D]">Sản phẩm</h3>
+        <form onSubmit={submitProduct} className="mb-5 space-y-3 rounded-2xl border border-[#e7dccb] bg-[#fcfaf6] p-4">
+          <h4 className="text-lg font-bold text-[#0B2D4D]">Thêm sản phẩm</h4>
+          <div className="grid gap-3 md:grid-cols-2">
+            <input value={newProduct.name} onChange={(e) => setNewProduct((v) => ({ ...v, name: e.target.value }))} placeholder="Tên sản phẩm" className="rounded-xl border px-3 py-2" required />
+            <input value={newProduct.slug} onChange={(e) => setNewProduct((v) => ({ ...v, slug: e.target.value }))} placeholder="Slug sản phẩm" className="rounded-xl border px-3 py-2" required />
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <input value={newProduct.price} onChange={(e) => setNewProduct((v) => ({ ...v, price: e.target.value }))} placeholder="Giá tiền (VND)" className="rounded-xl border px-3 py-2" required />
+            <input value={newProduct.stock} onChange={(e) => setNewProduct((v) => ({ ...v, stock: e.target.value }))} placeholder="Tồn kho" className="rounded-xl border px-3 py-2" required />
+          </div>
+          <select value={newProduct.categoryId} onChange={(e) => setNewProduct((v) => ({ ...v, categoryId: e.target.value }))} className="w-full rounded-xl border px-3 py-2">
+            <option value="">Không gán danh mục</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>{category.name}</option>
+            ))}
+          </select>
+          <RichTextEditor
+            value={newProduct.shortDescription}
+            onChange={(value) => setNewProduct((v) => ({ ...v, shortDescription: value }))}
+            placeholder="Mô tả ngắn cho thẻ sản phẩm"
+            minHeight={120}
+          />
+          <RichTextEditor
+            value={newProduct.description}
+            onChange={(value) => setNewProduct((v) => ({ ...v, description: value }))}
+            placeholder="Mô tả chi tiết sản phẩm"
+          />
+          <input value={newProduct.thumbnailUrl} onChange={(e) => setNewProduct((v) => ({ ...v, thumbnailUrl: e.target.value }))} placeholder="Link ảnh đại diện" className="w-full rounded-xl border px-3 py-2" />
+          <textarea
+            value={newProduct.galleryUrls}
+            onChange={(e) => setNewProduct((v) => ({ ...v, galleryUrls: e.target.value }))}
+            placeholder={'Ảnh phụ (mỗi dòng 1 URL)\nhttps://.../image-1.jpg\nhttps://.../image-2.jpg'}
+            className="min-h-24 w-full rounded-xl border px-3 py-2"
+          />
+          <button disabled={busy} className="rounded-full bg-[#0B2D4D] px-4 py-2 text-sm font-semibold text-white">Lưu sản phẩm</button>
+        </form>
         <div className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <input
             value={productSearch}
@@ -847,7 +923,10 @@ export default function AdminPage() {
           </form>
         ) : null}
       </section>
+        </>
+      ) : null}
 
+      {activeAdminSection === 'content' ? (
       <section className="space-y-6 rounded-3xl border border-[#d8cdb9] bg-white p-6">
         <h3 className="text-2xl font-bold text-[#0B2D4D]">Nội dung trang và Blog</h3>
 
@@ -1026,6 +1105,159 @@ export default function AdminPage() {
           </form>
         ) : null}
       </section>
+      ) : null}
+
+      {activeAdminSection === 'users' ? (
+      <section className="space-y-6 rounded-3xl border border-[#d8cdb9] bg-white p-6">
+        <h3 className="text-2xl font-bold text-[#0B2D4D]">Quản lý người dùng</h3>
+
+        <form onSubmit={submitUser} className="space-y-3 rounded-2xl border border-[#e7dccb] bg-[#fcfaf6] p-4">
+          <h4 className="text-lg font-bold text-[#0B2D4D]">Thêm tài khoản admin</h4>
+          <div className="grid gap-3 md:grid-cols-3">
+            <input
+              value={newUser.email}
+              onChange={(e) => setNewUser((v) => ({ ...v, email: e.target.value }))}
+              placeholder="Email đăng nhập"
+              type="email"
+              className="rounded-xl border px-3 py-2"
+              required
+            />
+            <input
+              value={newUser.fullName}
+              onChange={(e) => setNewUser((v) => ({ ...v, fullName: e.target.value }))}
+              placeholder="Họ tên"
+              className="rounded-xl border px-3 py-2"
+            />
+            <input
+              value={newUser.password}
+              onChange={(e) => setNewUser((v) => ({ ...v, password: e.target.value }))}
+              placeholder="Mật khẩu"
+              type="password"
+              className="rounded-xl border px-3 py-2"
+              required
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="rounded-full bg-[#0B2D4D]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#0B2D4D]">
+              role: admin
+            </span>
+            <button className="rounded-full bg-[#0B2D4D] px-4 py-2 text-sm font-semibold text-white">Lưu tài khoản</button>
+          </div>
+        </form>
+
+        <div className="overflow-hidden rounded-2xl border border-[#e7dccb]">
+          <p className="border-b bg-[#f8f4ec] px-4 py-3 font-semibold text-[#0B2D4D]">Danh sách người dùng</p>
+          <table className="w-full text-sm">
+            <thead className="bg-[#fcfaf6] text-left text-[#6b7280]">
+              <tr>
+                <th className="px-4 py-2">Email</th>
+                <th className="px-4 py-2">Họ tên</th>
+                <th className="px-4 py-2">Role</th>
+                <th className="px-4 py-2">Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedUsers.map((item) => (
+                <tr key={item.id} className="border-t">
+                  <td className="px-4 py-2">{item.email}</td>
+                  <td className="px-4 py-2">{item.full_name || '-'}</td>
+                  <td className="px-4 py-2">
+                    <span className="rounded-full bg-[#0B2D4D]/10 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-[#0B2D4D]">
+                      admin
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingUserId(item.id);
+                          setEditingUser({ fullName: item.full_name || '', password: '' });
+                        }}
+                        className="rounded-full border px-3 py-1"
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          askConfirm('Xác nhận xóa', `Bạn có chắc muốn xóa user "${item.email}"?`, () => {
+                            closeConfirm();
+                            void run(async () => {
+                              await apiDelete(`/users/${item.id}`, true);
+                              if (editingUserId === item.id) {
+                                setEditingUserId('');
+                              }
+                            }, 'Đã xóa user');
+                          })
+                        }
+                        className="rounded-full border border-red-200 px-3 py-1 text-red-600"
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {editingUserId ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              askConfirm('Xác nhận lưu', 'Bạn có chắc muốn cập nhật user này?', () => {
+                closeConfirm();
+                void run(async () => {
+                  await apiPatch(
+                    `/users/${editingUserId}`,
+                    {
+                      data: {
+                        full_name: editingUser.fullName || null,
+                        ...(editingUser.password ? { password: editingUser.password } : {}),
+                      },
+                    },
+                    true,
+                  );
+                  setEditingUserId('');
+                  setEditingUser({ fullName: '', password: '' });
+                }, 'Đã cập nhật user');
+              });
+            }}
+            className="space-y-3 rounded-2xl border border-[#e7dccb] bg-[#fcfaf6] p-4"
+          >
+            <h4 className="text-lg font-bold text-[#0B2D4D]">Sửa người dùng</h4>
+            <div className="grid gap-3 md:grid-cols-3">
+              <input
+                value={editingUser.fullName}
+                onChange={(e) => setEditingUser((v) => ({ ...v, fullName: e.target.value }))}
+                className="rounded-xl border px-3 py-2"
+                placeholder="Họ tên"
+              />
+              <input
+                value={editingUser.password}
+                onChange={(e) => setEditingUser((v) => ({ ...v, password: e.target.value }))}
+                className="rounded-xl border px-3 py-2"
+                placeholder="Mật khẩu mới (để trống nếu giữ nguyên)"
+                type="password"
+              />
+              <div className="flex items-center">
+                <span className="rounded-full bg-[#0B2D4D]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#0B2D4D]">
+                  role: admin
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="rounded-full bg-[#0B2D4D] px-4 py-2 text-sm font-semibold text-white">Lưu sửa user</button>
+              <button type="button" onClick={() => setEditingUserId('')} className="rounded-full border px-4 py-2 text-sm font-semibold">
+                Hủy
+              </button>
+            </div>
+          </form>
+        ) : null}
+      </section>
+      ) : null}
     </main>
   );
 }

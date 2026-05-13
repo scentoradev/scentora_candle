@@ -1,4 +1,5 @@
-﻿import { Category } from './types';
+﻿import RichTextContent from '@/components/common/RichTextContent';
+import { Category } from './types';
 
 type CategoryCardProps = {
   category: Category;
@@ -13,7 +14,11 @@ export default function CategoryCard({ category, onOpenChildren, onEdit, onDelet
       <p className="text-xs uppercase tracking-[0.2em] text-[#b8933b]">Danh mục</p>
       <h4 className="mt-2 text-xl font-semibold text-[#0B2D4D]">{category.name}</h4>
       <p className="mt-1 text-sm text-[#6b7280]">/{category.slug}</p>
-      <p className="mt-3 text-sm text-[#4b5563]">{category.description || 'Chưa có mô tả'}</p>
+      <RichTextContent
+        value={category.description}
+        fallback="Chưa có mô tả"
+        className="mt-3 break-words text-sm leading-6 text-[#4b5563]"
+      />
       <div className="mt-4 flex gap-2">
         {onOpenChildren ? (
           <button onClick={onOpenChildren} className="rounded-full border border-[#c8b18a] px-3 py-1 text-sm text-[#7b5c26]">

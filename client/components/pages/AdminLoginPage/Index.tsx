@@ -35,7 +35,7 @@ export default function AdminLoginPage() {
         onEmailChange={setEmail}
         onPasswordChange={setPassword}
       />
-      <p className="mt-4 text-sm text-neutral-500">Phím tắt: Alt + A</p>
+      <p className="mt-4 text-sm text-neutral-500">Phím tắt: Alt + Shift + A</p>
     </main>
   );
 }

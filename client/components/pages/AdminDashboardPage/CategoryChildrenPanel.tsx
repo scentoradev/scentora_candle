@@ -1,3 +1,5 @@
+﻿import RichTextContent from '@/components/common/RichTextContent';
+import RichTextEditor from '@/components/common/RichTextEditor';
 import { Category } from './types';
 
 type CategoryChildrenPanelProps = {
@@ -38,11 +40,18 @@ export default function CategoryChildrenPanel({
 
       <div className="mt-4 rounded-2xl border border-[#e9dfcf] bg-[#fbfaf7] p-4">
         <h4 className="text-lg font-semibold text-[#0B2D4D]">Thêm danh mục con</h4>
-        <div className="mt-3 grid gap-2 md:grid-cols-4">
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
           <input value={newChild.name} onChange={(e) => onNewChildChange('name', e.target.value)} placeholder="Tên danh mục con" className="rounded-xl border px-3 py-2" />
           <input value={newChild.slug} onChange={(e) => onNewChildChange('slug', e.target.value)} placeholder="Slug" className="rounded-xl border px-3 py-2" />
-          <input value={newChild.description} onChange={(e) => onNewChildChange('description', e.target.value)} placeholder="Mô tả ngắn" className="rounded-xl border px-3 py-2" />
           <button onClick={onCreateChild} className="rounded-xl bg-[#0B2D4D] px-3 py-2 text-sm font-semibold text-white">Lưu danh mục con</button>
+        </div>
+        <div className="mt-3">
+          <RichTextEditor
+            value={newChild.description}
+            onChange={(value) => onNewChildChange('description', value)}
+            placeholder="Mô tả ngắn danh mục con"
+            minHeight={120}
+          />
         </div>
       </div>
 
@@ -54,7 +63,11 @@ export default function CategoryChildrenPanel({
             <article key={child.id} className="rounded-2xl border border-[#eee2d2] bg-[#fbfaf7] p-4">
               <h4 className="text-lg font-semibold text-[#0B2D4D]">{child.name}</h4>
               <p className="mt-1 text-sm text-[#6b7280]">/{child.slug}</p>
-              <p className="mt-2 text-sm text-[#4b5563]">{child.description || 'Chưa có mô tả'}</p>
+              <RichTextContent
+                value={child.description}
+                fallback="Chưa có mô tả"
+                className="mt-2 break-words text-sm leading-6 text-[#4b5563]"
+              />
               <div className="mt-3 flex gap-2">
                 <button onClick={() => onStartEditChild(child)} className="rounded-full border px-3 py-1 text-sm">Sửa</button>
                 <button onClick={() => onDeleteChild(child)} className="rounded-full border border-red-200 px-3 py-1 text-sm text-red-600">Xóa</button>
@@ -67,11 +80,18 @@ export default function CategoryChildrenPanel({
       {editingChildId ? (
         <div className="mt-4 rounded-2xl border border-[#e9dfcf] bg-white p-4">
           <h4 className="text-lg font-semibold text-[#0B2D4D]">Sửa danh mục con</h4>
-          <div className="mt-3 grid gap-2 md:grid-cols-4">
+          <div className="mt-3 grid gap-2 md:grid-cols-3">
             <input value={editingChild.name} onChange={(e) => onEditingChildChange('name', e.target.value)} className="rounded-xl border px-3 py-2" />
             <input value={editingChild.slug} onChange={(e) => onEditingChildChange('slug', e.target.value)} className="rounded-xl border px-3 py-2" />
-            <input value={editingChild.description} onChange={(e) => onEditingChildChange('description', e.target.value)} className="rounded-xl border px-3 py-2" />
             <button onClick={onSaveEditChild} className="rounded-xl bg-[#0B2D4D] px-3 py-2 text-sm font-semibold text-white">Lưu sửa</button>
+          </div>
+          <div className="mt-3">
+            <RichTextEditor
+              value={editingChild.description}
+              onChange={(value) => onEditingChildChange('description', value)}
+              placeholder="Mô tả ngắn danh mục con"
+              minHeight={120}
+            />
           </div>
         </div>
       ) : null}

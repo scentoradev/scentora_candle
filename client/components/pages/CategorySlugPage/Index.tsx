@@ -56,12 +56,12 @@ export default function CategorySlugPage({ params }: CategorySlugPageProps) {
     if (matchedContent.type === 'policy') {
       return (
         <main className="min-h-screen bg-[#fbfaf7]">
-          <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-10 md:grid-cols-[240px_1fr]">
-            <aside className="rounded-[20px] bg-[#0B2D4D] p-6 text-white">
-              <h2 className="mb-6 text-5xl font-bold leading-tight text-[#D4AF37]">Chính sách</h2>
-              <nav className="space-y-3">
+          <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:px-6 md:grid-cols-[220px_1fr]">
+            <aside className="rounded-2xl bg-[#0B2D4D] p-4 text-white sm:p-5">
+              <h2 className="mb-4 whitespace-nowrap text-2xl font-bold leading-tight text-[#D4AF37] sm:text-3xl">Chính sách</h2>
+              <nav className="space-y-2">
                 {policyItems.map((item) => (
-                  <Link key={item.id} href={`/${item.slug}`} className={`block rounded-lg px-3 py-2 text-3xl font-medium transition ${item.slug === matchedContent.slug ? 'bg-white/15 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}>
+                  <Link key={item.id} href={`/${item.slug}`} className={`block rounded-xl px-3 py-2 text-xl font-medium transition sm:text-2xl ${item.slug === matchedContent.slug ? 'bg-white/20 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)]' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}>
                     {item.title}
                   </Link>
                 ))}
@@ -69,9 +69,10 @@ export default function CategorySlugPage({ params }: CategorySlugPageProps) {
             </aside>
 
             <article className="rounded-[24px] border border-[#eee2d2] bg-white p-8 md:p-10">
-              <h1 className="text-4xl font-bold text-[#0B2D4D]">{matchedContent.title}</h1>
-              {matchedContent.summary ? <p className="mt-4 text-lg text-[#5f6b7a]">{matchedContent.summary}</p> : null}
-              <RichTextContent value={matchedContent.content || matchedContent.summary} className="mt-8 break-words leading-8 text-[#334155]" />
+              <RichTextContent
+                value={matchedContent.content || matchedContent.summary}
+                className="break-words text-[17px] leading-8 text-[#24364a] [&_h1]:mb-4 [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:leading-tight [&_h1]:text-[#0B2D4D] [&_h2]:mb-3 [&_h2]:mt-8 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:leading-tight [&_h2]:text-[#0f3e66] [&_h3]:mb-2 [&_h3]:mt-6 [&_h3]:text-2xl [&_h3]:font-semibold [&_h3]:text-[#1d4f7a] [&_p]:text-[17px] [&_p]:text-[#2a3d52]"
+              />
             </article>
           </div>
         </main>
@@ -93,7 +94,11 @@ export default function CategorySlugPage({ params }: CategorySlugPageProps) {
     <main className="bg-[#fbfaf7]">
       <section className="bg-[#0B2D4D] px-8 py-16 text-white">
         <h1 className="text-4xl font-bold md:text-6xl">{matchedCategory?.name ?? 'Danh mục'}</h1>
-        <p className="mt-4 max-w-3xl text-white/80">{matchedCategory?.description || 'Bộ sưu tập sản phẩm theo danh mục.'}</p>
+        <RichTextContent
+          value={matchedCategory?.description}
+          fallback="Bộ sưu tập sản phẩm theo danh mục."
+          className="mt-4 max-w-3xl break-words text-white/80 [&_p]:my-2 [&_p]:text-lg [&_p]:leading-8 [&_h1]:text-3xl [&_h1]:font-bold [&_h2]:text-2xl [&_h2]:font-semibold"
+        />
       </section>
 
       <section className="px-8 py-12">

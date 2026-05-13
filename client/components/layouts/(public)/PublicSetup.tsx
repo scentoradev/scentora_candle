@@ -16,7 +16,7 @@ export default function PublicSetup({ children }: PublicSetupProps) {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.altKey && event.key.toLowerCase() === 'a') {
+      if (event.altKey && event.shiftKey && event.key.toLowerCase() === 'a') {
         event.preventDefault();
         router.push('/admin/login');
       }

@@ -1,5 +1,9 @@
-﻿import Link from 'next/link';
+﻿'use client';
+
+import Link from 'next/link';
+import Image from 'next/image';
 import { FaTiktok } from 'react-icons/fa';
+import { useContentPages } from '@/hooks/useContentPages';
 
 const categoryLinks = [
   { label: 'Nến thơm', href: '/nen_thom' },
@@ -9,7 +13,7 @@ const categoryLinks = [
   { label: 'Phụ kiện', href: '/phu_kien' },
 ];
 
-const policyLinks = [
+const fallbackPolicyLinks = [
   { label: 'Bảo mật', href: '/gioi_thieu' },
   { label: 'Đổi trả', href: '/gioi_thieu' },
   { label: 'Vận chuyển', href: '/gioi_thieu' },
@@ -20,13 +24,26 @@ const policyLinks = [
 const footerLinkClass = 'hover:text-[#D4AF37] transition';
 
 export default function PublicFooter() {
+  const { items: policyItems } = useContentPages({ type: 'policy', onlyPublished: true });
+
+  const policyLinks =
+    policyItems.length > 0
+      ? policyItems
+          .slice()
+          .sort((a, b) => a.sort_order - b.sort_order)
+          .map((item) => ({
+            label: item.title,
+            href: `/${item.slug}`,
+          }))
+      : fallbackPolicyLinks;
+
   return (
     <footer className="overflow-hidden bg-[#0B2D4D] text-white">
       <div className="grid grid-cols-1 gap-14 border-b border-white/10 px-8 py-20 md:grid-cols-2 xl:grid-cols-4">
         <div>
           <div className="mb-6 flex items-center gap-4">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#08243d] text-3xl font-serif text-[#D4AF37] shadow-lg">
-              S
+            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-[#08243d] shadow-lg">
+              <Image src="/logo.png" alt="Scentora Candle logo" width={80} height={80} className="h-full w-full object-cover" />
             </div>
 
             <div>

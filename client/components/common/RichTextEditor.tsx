@@ -52,10 +52,10 @@ const TOOL_GROUPS: ToolItem[][] = [
     { label: 'Clear format', command: 'removeFormat', icon: FiRefreshCw },
   ],
   [
-    { label: 'Heading 1', command: 'formatBlock', value: 'H1', icon: FiType },
-    { label: 'Heading 2', command: 'formatBlock', value: 'H2', icon: FiType },
-    { label: 'Paragraph', command: 'formatBlock', value: 'P', icon: FiMinus },
-    { label: 'Quote', command: 'formatBlock', value: 'BLOCKQUOTE', icon: FiAlignJustify },
+    { label: 'Heading 1', command: 'formatBlock', value: 'h1', icon: FiType },
+    { label: 'Heading 2', command: 'formatBlock', value: 'h2', icon: FiType },
+    { label: 'Paragraph', command: 'formatBlock', value: 'p', icon: FiMinus },
+    { label: 'Quote', command: 'formatBlock', value: 'blockquote', icon: FiAlignJustify },
   ],
   [
     { label: 'Bullet list', command: 'insertUnorderedList', icon: FiList },
@@ -73,10 +73,10 @@ const TOOL_GROUPS: ToolItem[][] = [
 ];
 
 const headingBadge = (value?: string) => {
-  if (value === 'H1') return 'H1';
-  if (value === 'H2') return 'H2';
-  if (value === 'P') return 'P';
-  if (value === 'BLOCKQUOTE') return '"';
+  if (value === 'h1') return 'H1';
+  if (value === 'h2') return 'H2';
+  if (value === 'p') return 'P';
+  if (value === 'blockquote') return '"';
   return null;
 };
 
@@ -90,6 +90,8 @@ export default function RichTextEditor({
   const savedRangeRef = useRef<Range | null>(null);
   const [isLinkPanelOpen, setIsLinkPanelOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState('https://');
+  const [textColor, setTextColor] = useState('#1f2937');
+  const [highlightColor, setHighlightColor] = useState('#fff3bf');
 
   useEffect(() => {
     const el = editorRef.current;
@@ -125,6 +127,13 @@ export default function RichTextEditor({
     el.focus();
     restoreSelection();
     const beforeHtml = el.innerHTML;
+    if (command === 'formatBlock' && commandValue) {
+      document.execCommand('formatBlock', false, `<${commandValue}>`);
+      saveSelection();
+      syncEditor();
+      return;
+    }
+
     document.execCommand(command, false, commandValue);
     const afterHtml = el.innerHTML;
 
@@ -143,10 +152,6 @@ export default function RichTextEditor({
         .join('');
       document.execCommand('insertHTML', false, `<${listTag}>${itemHtml || '<li>Mục mới</li>'}</${listTag}>`);
     }
-
-    if (command === 'formatBlock') {
-      document.execCommand('styleWithCSS', false, 'true');
-    }
     saveSelection();
     syncEditor();
   };
@@ -160,6 +165,39 @@ export default function RichTextEditor({
     restoreSelection();
     document.execCommand('createLink', false, normalized);
     setIsLinkPanelOpen(false);
+    saveSelection();
+    syncEditor();
+  };
+
+  const applyTextColor = (color: string) => {
+    const el = editorRef.current;
+    if (!el) return;
+    el.focus();
+    restoreSelection();
+    document.execCommand('styleWithCSS', false, 'true');
+    document.execCommand('foreColor', false, color);
+    saveSelection();
+    syncEditor();
+  };
+
+  const applyHighlightColor = (color: string) => {
+    const el = editorRef.current;
+    if (!el) return;
+    el.focus();
+    restoreSelection();
+    document.execCommand('styleWithCSS', false, 'true');
+    document.execCommand('hiliteColor', false, color);
+    saveSelection();
+    syncEditor();
+  };
+
+  const clearHighlightColor = () => {
+    const el = editorRef.current;
+    if (!el) return;
+    el.focus();
+    restoreSelection();
+    document.execCommand('styleWithCSS', false, 'true');
+    document.execCommand('hiliteColor', false, 'transparent');
     saveSelection();
     syncEditor();
   };
@@ -222,6 +260,58 @@ export default function RichTextEditor({
             </div>
           ) : null}
         </div>
+
+        <div className="flex items-center gap-2 rounded-lg border border-[#e4d8c6] bg-white/70 px-2 py-1">
+          <label className="flex items-center gap-1 text-xs font-semibold text-[#334155]">
+            A
+            <input
+              type="color"
+              value={textColor}
+              onMouseDown={(event) => {
+                event.preventDefault();
+                saveSelection();
+              }}
+              onChange={(event) => {
+                const color = event.target.value;
+                setTextColor(color);
+                applyTextColor(color);
+              }}
+              className="h-7 w-7 cursor-pointer rounded border border-[#d8cdb9] bg-white p-0.5"
+              title="Màu chữ"
+            />
+          </label>
+
+          <label className="flex items-center gap-1 text-xs font-semibold text-[#334155]">
+            Bg
+            <input
+              type="color"
+              value={highlightColor}
+              onMouseDown={(event) => {
+                event.preventDefault();
+                saveSelection();
+              }}
+              onChange={(event) => {
+                const color = event.target.value;
+                setHighlightColor(color);
+                applyHighlightColor(color);
+              }}
+              className="h-7 w-7 cursor-pointer rounded border border-[#d8cdb9] bg-white p-0.5"
+              title="Màu nền chữ"
+            />
+          </label>
+          <button
+            type="button"
+            onMouseDown={(event) => {
+              event.preventDefault();
+              saveSelection();
+            }}
+            onClick={clearHighlightColor}
+            className="h-7 rounded-md border border-[#d8cdb9] px-2 text-[11px] font-semibold text-[#334155] hover:bg-[#f3ecdf]"
+            title="Tắt màu nền chữ"
+          >
+            Tắt BG
+          </button>
+        </div>
       </div>
 
       <div
@@ -232,7 +322,7 @@ export default function RichTextEditor({
         onMouseUp={saveSelection}
         onKeyUp={saveSelection}
         data-placeholder={placeholder}
-        className="min-h-[220px] w-full break-words p-3 text-sm text-[#334155] outline-none empty:before:pointer-events-none empty:before:text-[#94a3b8] empty:before:content-[attr(data-placeholder)] [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-2 [&_li]:my-1 [&_p]:my-1"
+        className="min-h-[220px] w-full break-words p-3 text-sm text-[#334155] outline-none empty:before:pointer-events-none empty:before:text-[#94a3b8] empty:before:content-[attr(data-placeholder)] [&_h1]:my-2 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:leading-tight [&_h1]:text-[#0B2D4D] [&_h2]:my-2 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:leading-tight [&_h2]:text-[#1b4e76] [&_blockquote]:my-2 [&_blockquote]:border-l-4 [&_blockquote]:border-[#d8cdb9] [&_blockquote]:pl-3 [&_blockquote]:italic [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-2 [&_li]:my-1 [&_p]:my-1"
         style={{ minHeight }}
       />
     </div>
