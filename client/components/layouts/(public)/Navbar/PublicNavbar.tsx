@@ -95,7 +95,7 @@ export default function PublicNavbar() {
             alt="Scentora Candle"
             width={80}
             height={80}
-            className="h-14 w-14 rounded-full object-cover shadow-lg sm:h-16 sm:w-16 xl:h-20 xl:w-20"
+            className="h-14 w-auto rounded-full object-cover shadow-lg sm:h-16 xl:h-20"
           />
 
           <div>

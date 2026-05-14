@@ -1,8 +1,8 @@
-﻿import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class QueryContentPagesDto {
   @ApiPropertyOptional({ example: 'policy' })
-  type?: 'policy' | 'blog';
+  type?: 'policy' | 'blog' | 'hero';
 
   @ApiPropertyOptional({ example: 'bao_mat' })
   slug?: string;
@@ -10,3 +10,4 @@ export class QueryContentPagesDto {
   @ApiPropertyOptional({ example: true })
   is_published?: boolean;
 }
+

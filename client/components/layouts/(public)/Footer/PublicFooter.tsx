@@ -22,14 +22,18 @@ const fallbackPolicyLinks = [
 ];
 
 const footerLinkClass = 'hover:text-[#D4AF37] transition';
+const FOOTER_MAP_SLUG = 'footer_google_map_link';
 
 export default function PublicFooter() {
   const { items: policyItems } = useContentPages({ type: 'policy', onlyPublished: true });
+  const footerMapItem = policyItems.find((item) => item.slug === FOOTER_MAP_SLUG);
+  const footerMapUrl = (footerMapItem?.summary || '').trim();
 
   const policyLinks =
-    policyItems.length > 0
+    policyItems.filter((item) => item.slug !== FOOTER_MAP_SLUG).length > 0
       ? policyItems
           .slice()
+          .filter((item) => item.slug !== FOOTER_MAP_SLUG)
           .sort((a, b) => a.sort_order - b.sort_order)
           .map((item) => ({
             label: item.title,
@@ -43,7 +47,7 @@ export default function PublicFooter() {
         <div>
           <div className="mb-6 flex items-center gap-4">
             <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-[#08243d] shadow-lg">
-              <Image src="/logo.png" alt="Scentora Candle logo" width={80} height={80} className="h-full w-full object-cover" />
+              <Image src="/logo.png" alt="Scentora Candle logo" width={80} height={80} className="h-full w-auto object-cover" />
             </div>
 
             <div>
@@ -115,6 +119,16 @@ export default function PublicFooter() {
             <div>
               <p className="mb-2 text-sm uppercase tracking-[0.2em] text-white/40">Địa chỉ</p>
               <p>102/135 Lê Văn Thọ, Hồ Chí Minh</p>
+              {footerMapUrl ? (
+                <a
+                  href={footerMapUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-block rounded-full border border-[#D4AF37] px-4 py-1.5 text-sm text-[#D4AF37] transition hover:bg-[#D4AF37] hover:text-[#0B2D4D]"
+                >
+                  Xem Google Map
+                </a>
+              ) : null}
             </div>
           </div>
         </div>

@@ -19,7 +19,7 @@ export class ContentPagesService {
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS content_pages (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        type VARCHAR(32) NOT NULL CHECK (type IN ('policy', 'blog')),
+        type VARCHAR(32) NOT NULL CHECK (type IN ('policy', 'blog', 'hero')),
         title VARCHAR(255) NOT NULL,
         slug VARCHAR(255) NOT NULL UNIQUE,
         summary TEXT,
@@ -33,6 +33,13 @@ export class ContentPagesService {
     `);
     await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_content_pages_type ON content_pages(type)`);
     await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_content_pages_slug ON content_pages(slug)`);
+    await this.pool.query(`
+      ALTER TABLE content_pages DROP CONSTRAINT IF EXISTS content_pages_type_check
+    `);
+    await this.pool.query(`
+      ALTER TABLE content_pages
+      ADD CONSTRAINT content_pages_type_check CHECK (type IN ('policy', 'blog', 'hero'))
+    `);
   }
 
   private async ensureReady() {

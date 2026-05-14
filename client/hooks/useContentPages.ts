@@ -1,11 +1,11 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { apiGet, type ApiListResponse } from './api';
 
 export type ContentPageItem = {
   id: string;
-  type: 'policy' | 'blog';
+  type: 'policy' | 'blog' | 'hero';
   title: string;
   slug: string;
   summary?: string | null;
@@ -16,7 +16,7 @@ export type ContentPageItem = {
 };
 
 type UseContentPagesParams = {
-  type?: 'policy' | 'blog';
+  type?: 'policy' | 'blog' | 'hero';
   onlyPublished?: boolean;
 };
 
@@ -55,3 +55,4 @@ export function useContentPages(params?: UseContentPagesParams) {
 
   return { items, loading, error };
 }
+
