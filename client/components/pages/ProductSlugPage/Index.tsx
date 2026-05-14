@@ -92,12 +92,12 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
   }, [otherProducts, productImageMap]);
 
   if (loading) {
-    return <main className="bg-[#fbfaf7] px-8 py-12">Đang tải sản phẩm...</main>;
+    return <main className="bg-[#fbfaf7] px-4 py-10 sm:px-8 sm:py-12">Đang tải sản phẩm...</main>;
   }
 
   if (!product) {
     return (
-      <main className="bg-[#fbfaf7] px-8 py-16">
+      <main className="bg-[#fbfaf7] px-4 py-12 sm:px-8 sm:py-16">
         <h1 className="text-4xl font-bold text-[#0B2D4D]">404</h1>
         <p className="mt-4 text-[#4b5563]">Không tìm thấy sản phẩm phù hợp.</p>
         <Link href="/" className="mt-8 inline-block rounded-full bg-[#0B2D4D] px-6 py-3 text-white">
@@ -108,10 +108,10 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
   }
 
   return (
-    <main className="bg-[#fbfaf7] px-8 py-12">
-      <div className="mx-auto grid max-w-6xl gap-10 rounded-[24px] border border-[#eee2d2] bg-white p-8 md:grid-cols-2">
+    <main className="bg-[#fbfaf7] px-4 py-10 sm:px-8 sm:py-12">
+      <div className="mx-auto grid max-w-6xl gap-6 rounded-[24px] border border-[#eee2d2] bg-white p-4 sm:gap-8 sm:p-6 md:grid-cols-2 md:p-8">
         <div>
-          <div className="relative h-[420px] overflow-hidden rounded-[20px]">
+          <div className="relative h-[280px] overflow-hidden rounded-[20px] sm:h-[360px] md:h-[420px]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={productSlides[activeImageIndex % productSlides.length] || DEFAULT_PRODUCT_IMAGE}
@@ -162,8 +162,8 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
           ) : null}
         </div>
         <div>
-          <h1 className="text-4xl font-bold text-[#0B2D4D]">{product.name}</h1>
-          <p className="mt-4 text-3xl font-bold text-[#0B2D4D]">{formatVnd(product.price)}</p>
+          <h1 className="text-3xl font-bold text-[#0B2D4D] sm:text-4xl">{product.name}</h1>
+          <p className="mt-4 text-2xl font-bold text-[#0B2D4D] sm:text-3xl">{formatVnd(product.price)}</p>
           <RichTextContent
             value={product.description || product.short_description}
             fallback="Sản phẩm showroom."
@@ -181,7 +181,7 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
       {otherProducts.length ? (
         <section className="mx-auto mt-12 max-w-6xl">
           <div className="mb-5 flex items-end justify-between gap-3">
-            <h2 className="text-3xl font-bold text-[#0B2D4D]">Sản phẩm khác</h2>
+            <h2 className="text-2xl font-bold text-[#0B2D4D] sm:text-3xl">Sản phẩm khác</h2>
             <Link href="/" className="text-sm font-semibold text-[#0B2D4D] hover:underline">
               Xem thêm
             </Link>

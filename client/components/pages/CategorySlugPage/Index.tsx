@@ -45,7 +45,7 @@ export default function CategorySlugPage({ params }: CategorySlugPageProps) {
 
   if (!isLoading && !matchedCategory && !matchedContent) {
     return (
-      <main className="bg-[#fbfaf7] px-8 py-16">
+      <main className="bg-[#fbfaf7] px-4 py-12 sm:px-8 sm:py-16">
         <h1 className="text-4xl font-bold text-[#0B2D4D]">404</h1>
         <p className="mt-4 text-[#4b5563]">Không tìm thấy nội dung phù hợp.</p>
       </main>
@@ -61,14 +61,14 @@ export default function CategorySlugPage({ params }: CategorySlugPageProps) {
               <h2 className="mb-4 whitespace-nowrap text-2xl font-bold leading-tight text-[#D4AF37] sm:text-3xl">Chính sách</h2>
               <nav className="space-y-2">
                 {policyItems.map((item) => (
-                  <Link key={item.id} href={`/${item.slug}`} className={`block rounded-xl px-3 py-2 text-xl font-medium transition sm:text-2xl ${item.slug === matchedContent.slug ? 'bg-white/20 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)]' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}>
+                  <Link key={item.id} href={`/${item.slug}`} className={`block rounded-xl px-3 py-2 text-base font-medium transition sm:text-lg ${item.slug === matchedContent.slug ? 'bg-white/20 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)]' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}>
                     {item.title}
                   </Link>
                 ))}
               </nav>
             </aside>
 
-            <article className="rounded-[24px] border border-[#eee2d2] bg-white p-8 md:p-10">
+            <article className="rounded-[24px] border border-[#eee2d2] bg-white p-5 sm:p-6 md:p-10">
               <RichTextContent
                 value={matchedContent.content || matchedContent.summary}
                 className="break-words text-[17px] leading-8 text-[#24364a] [&_h1]:mb-4 [&_h1]:text-4xl [&_h1]:font-bold [&_h1]:leading-tight [&_h1]:text-[#0B2D4D] [&_h2]:mb-3 [&_h2]:mt-8 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:leading-tight [&_h2]:text-[#0f3e66] [&_h3]:mb-2 [&_h3]:mt-6 [&_h3]:text-2xl [&_h3]:font-semibold [&_h3]:text-[#1d4f7a] [&_p]:text-[17px] [&_p]:text-[#2a3d52]"
@@ -80,9 +80,9 @@ export default function CategorySlugPage({ params }: CategorySlugPageProps) {
     }
 
     return (
-      <main className="bg-[#fbfaf7] px-8 py-12">
-        <article className="mx-auto max-w-5xl rounded-[24px] border border-[#eee2d2] bg-white p-8 md:p-10">
-          <h1 className="text-4xl font-bold text-[#0B2D4D]">{matchedContent.title}</h1>
+      <main className="bg-[#fbfaf7] px-4 py-10 sm:px-8 sm:py-12">
+        <article className="mx-auto max-w-5xl rounded-[24px] border border-[#eee2d2] bg-white p-5 sm:p-6 md:p-10">
+          <h1 className="text-3xl font-bold text-[#0B2D4D] sm:text-4xl">{matchedContent.title}</h1>
           {matchedContent.summary ? <p className="mt-4 text-lg text-[#5f6b7a]">{matchedContent.summary}</p> : null}
           <RichTextContent value={matchedContent.content || matchedContent.summary} className="mt-8 break-words leading-8 text-[#334155]" />
         </article>
@@ -92,8 +92,8 @@ export default function CategorySlugPage({ params }: CategorySlugPageProps) {
 
   return (
     <main className="bg-[#fbfaf7]">
-      <section className="bg-[#0B2D4D] px-8 py-16 text-white">
-        <h1 className="text-4xl font-bold md:text-6xl">{matchedCategory?.name ?? 'Danh mục'}</h1>
+      <section className="bg-[#0B2D4D] px-4 py-12 text-white sm:px-8 sm:py-16">
+        <h1 className="text-3xl font-bold sm:text-4xl md:text-6xl">{matchedCategory?.name ?? 'Danh mục'}</h1>
         <RichTextContent
           value={matchedCategory?.description}
           fallback="Bộ sưu tập sản phẩm theo danh mục."
@@ -101,7 +101,7 @@ export default function CategorySlugPage({ params }: CategorySlugPageProps) {
         />
       </section>
 
-      <section className="px-8 py-12">
+      <section className="px-4 py-10 sm:px-8 sm:py-12">
         {isLoading ? <p>Đang tải sản phẩm...</p> : null}
         {!isLoading && filteredProducts.length === 0 ? <p>Chưa có sản phẩm phù hợp.</p> : null}
 

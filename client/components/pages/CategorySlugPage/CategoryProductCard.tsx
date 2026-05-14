@@ -13,7 +13,7 @@ type CategoryProductCardProps = {
 export default function CategoryProductCard({ product }: CategoryProductCardProps) {
   return (
     <Link href={`/san_pham/${product.slug}`} className="block overflow-hidden rounded-[24px] border border-[#eee2d2] bg-white">
-      <div className="relative h-[320px] w-full">
+      <div className="relative h-[240px] w-full sm:h-[280px] md:h-[320px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={product.thumbnail_url || DEFAULT_PRODUCT_IMAGE}
@@ -23,7 +23,7 @@ export default function CategoryProductCard({ product }: CategoryProductCardProp
           referrerPolicy="no-referrer"
         />
       </div>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <h2 className="text-xl font-semibold text-[#0B2D4D]">{product.name}</h2>
         <RichTextContent
           value={product.short_description || product.description}

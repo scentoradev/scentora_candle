@@ -11,19 +11,19 @@ export default function BlogPage() {
 
   return (
     <main className="bg-[#fbfaf7]">
-      <section className="bg-[#0B2D4D] px-8 py-20 text-white">
+      <section className="bg-[#0B2D4D] px-4 py-14 text-white sm:px-8 sm:py-20">
         <p className="mb-4 text-sm uppercase tracking-[0.3em] text-[#D4AF37]">Scentora Journal</p>
-        <h1 className="text-5xl font-bold">Blog</h1>
-        <p className="mt-5 max-w-2xl text-lg leading-8 text-white/75">
+        <h1 className="text-3xl font-bold sm:text-5xl">Blog</h1>
+        <p className="mt-5 max-w-2xl text-base leading-7 text-white/75 sm:text-lg sm:leading-8">
           Những chia sẻ nhỏ về nến thơm, mùi hương, decor và cách chăm sóc
           không gian sống.
         </p>
       </section>
 
-      <section className="px-8 py-16">
+      <section className="px-4 py-10 sm:px-8 sm:py-16">
         {loading ? <p>Đang tải bài viết...</p> : null}
         {!loading && items.length === 0 ? <p>Chưa có bài viết nào.</p> : null}
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-6 sm:gap-8 md:grid-cols-2 xl:grid-cols-3">
           {items.map((post) => (
             <BlogPostCard
               key={post.id}
