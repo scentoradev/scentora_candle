@@ -1,4 +1,4 @@
-export const API_BASE_URL =
+﻿export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '') ||
   'http://localhost:3000';
 
@@ -95,4 +95,3 @@ export async function apiDelete<T>(path: string, auth = false): Promise<T> {
 
   return (await response.json()) as T;
 }
-

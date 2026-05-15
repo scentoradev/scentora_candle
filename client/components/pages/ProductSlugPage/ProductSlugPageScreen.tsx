@@ -240,3 +240,4 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
     </main>
   );
 }
+

@@ -54,6 +54,7 @@ type NewHeroState = {
 };
 
 type Props = {
+  busy: boolean;
   policyPages: ContentPage[];
   blogPages: ContentPage[];
   heroPages: ContentPage[];
@@ -81,6 +82,7 @@ type Props = {
 };
 
 export default function ContentManagementSection({
+  busy: _busy,
   policyPages,
   blogPages,
   heroPages,
@@ -360,4 +362,3 @@ export default function ContentManagementSection({
     </section>
   );
 }
-
