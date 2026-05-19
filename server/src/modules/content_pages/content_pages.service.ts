@@ -5,7 +5,10 @@ import { assertAdminAuthorization } from '../../utils/admin-auth.util';
 import { CreateContentPagesDto } from './dto/create_content_pages.dto';
 import { QueryContentPagesDto } from './dto/query_content_pages.dto';
 import { UpdateContentPagesDto } from './dto/update_content_pages.dto';
-import { ContentPageRecord, ContentType } from './interfaces/content_pages.interface';
+import {
+  ContentPageRecord,
+  ContentType,
+} from './interfaces/content_pages.interface';
 
 @Injectable()
 export class ContentPagesService {
@@ -19,7 +22,7 @@ export class ContentPagesService {
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS content_pages (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        type VARCHAR(32) NOT NULL CHECK (type IN ('policy', 'blog', 'hero')),
+        type VARCHAR(32) NOT NULL CHECK (type IN ('policy', 'blog', 'hero', 'about')),
         title VARCHAR(255) NOT NULL,
         slug VARCHAR(255) NOT NULL UNIQUE,
         summary TEXT,
@@ -31,19 +34,32 @@ export class ContentPagesService {
         updated_at TIMESTAMP NOT NULL DEFAULT NOW()
       )
     `);
-    await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_content_pages_type ON content_pages(type)`);
-    await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_content_pages_slug ON content_pages(slug)`);
+    await this.pool.query(
+      `CREATE INDEX IF NOT EXISTS idx_content_pages_type ON content_pages(type)`,
+    );
+    await this.pool.query(
+      `CREATE INDEX IF NOT EXISTS idx_content_pages_slug ON content_pages(slug)`,
+    );
     await this.pool.query(`
       ALTER TABLE content_pages DROP CONSTRAINT IF EXISTS content_pages_type_check
     `);
     await this.pool.query(`
       ALTER TABLE content_pages
-      ADD CONSTRAINT content_pages_type_check CHECK (type IN ('policy', 'blog', 'hero'))
+      ADD CONSTRAINT content_pages_type_check CHECK (type IN ('policy', 'blog', 'hero', 'about'))
     `);
   }
 
   private async ensureReady() {
     await this.setupPromise;
+  }
+
+  private isTransientDbError(error: unknown) {
+    const message = error instanceof Error ? error.message.toLowerCase() : '';
+    return (
+      message.includes('timeout') ||
+      message.includes('connection terminated') ||
+      message.includes('connection terminated unexpectedly')
+    );
   }
 
   async create(dto: CreateContentPagesDto, authorization?: string) {
@@ -108,7 +124,13 @@ export class ContentPagesService {
       ORDER BY sort_order ASC, created_at DESC
     `;
 
-    const result = await this.pool.query<ContentPageRecord>(sql, values);
+    let result;
+    try {
+      result = await this.pool.query<ContentPageRecord>(sql, values);
+    } catch (error) {
+      if (!this.isTransientDbError(error)) throw error;
+      result = await this.pool.query<ContentPageRecord>(sql, values);
+    }
     return { message: 'List content_pages', query, items: result.rows };
   }
 

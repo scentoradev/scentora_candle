@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import Link from 'next/link';
-import { use, useMemo } from 'react';
+import { use, useMemo, useState } from 'react';
 import RichTextContent from '@/components/common/RichTextContent';
 import { useCategories } from '@/hooks/useCategories';
 import { useContentPages } from '@/hooks/useContentPages';
@@ -20,6 +20,8 @@ export default function CategorySlugPage({ params }: CategorySlugPageProps) {
   const { categories, loading: categoriesLoading } = useCategories();
   const { products, loading: productsLoading } = useProducts();
   const { items: contentPages, loading: contentLoading } = useContentPages({ onlyPublished: true });
+  const [priceSort, setPriceSort] = useState<'default' | 'asc' | 'desc'>('default');
+  const [stockFilter, setStockFilter] = useState<'all' | 'in_stock' | 'out_of_stock'>('all');
 
   const matchedCategory = useMemo(() => {
     const target = normalizeSlug(slug);
@@ -36,10 +38,31 @@ export default function CategorySlugPage({ params }: CategorySlugPageProps) {
     [contentPages],
   );
 
-  const filteredProducts = useMemo(() => {
+  const categoryProducts = useMemo(() => {
     if (!matchedCategory) return [];
     return products.filter((product) => product.category_id === matchedCategory.id);
   }, [products, matchedCategory]);
+
+  const filteredProducts = useMemo(() => {
+    const stockMatched = categoryProducts.filter((product) => {
+      const productPrice = Number(product.price || 0);
+      const productStock = Number(product.stock || 0);
+      const byStock =
+        stockFilter === 'all' ||
+        (stockFilter === 'in_stock' && productStock > 0) ||
+        (stockFilter === 'out_of_stock' && productStock <= 0);
+
+      return byStock && productPrice >= 0;
+    });
+
+    if (priceSort === 'default') return stockMatched;
+
+    return [...stockMatched].sort((a, b) => {
+      const aPrice = Number(a.price || 0);
+      const bPrice = Number(b.price || 0);
+      return priceSort === 'asc' ? aPrice - bPrice : bPrice - aPrice;
+    });
+  }, [categoryProducts, priceSort, stockFilter]);
 
   const isLoading = categoriesLoading || productsLoading || contentLoading;
 
@@ -79,6 +102,16 @@ export default function CategorySlugPage({ params }: CategorySlugPageProps) {
       );
     }
 
+    if (matchedContent.type === 'about') {
+      return (
+        <main className="bg-[#fbfaf7] px-4 py-10 sm:px-8 sm:py-12">
+          <article className="mx-auto max-w-5xl rounded-[24px] border border-[#eee2d2] bg-white p-5 sm:p-6 md:p-10">
+            <RichTextContent value={matchedContent.content || matchedContent.summary} className="break-words leading-8 text-[#334155]" />
+          </article>
+        </main>
+      );
+    }
+
     return (
       <main className="bg-[#fbfaf7] px-4 py-10 sm:px-8 sm:py-12">
         <article className="mx-auto max-w-5xl rounded-[24px] border border-[#eee2d2] bg-white p-5 sm:p-6 md:p-10">
@@ -103,7 +136,41 @@ export default function CategorySlugPage({ params }: CategorySlugPageProps) {
 
       <section className="px-4 py-10 sm:px-8 sm:py-12">
         {isLoading ? <p>Đang tải sản phẩm...</p> : null}
-        {!isLoading && filteredProducts.length === 0 ? <p>Chưa có sản phẩm phù hợp.</p> : null}
+        {!isLoading ? (
+          <div className="mb-6 grid gap-3 rounded-2xl border border-[#e7dccb] bg-white p-4 md:grid-cols-3">
+            <select
+              value={priceSort}
+              onChange={(event) => setPriceSort(event.target.value as 'default' | 'asc' | 'desc')}
+              className="rounded-xl border border-[#d5dce5] px-3 py-2"
+            >
+              <option value="default">Giá mặc định</option>
+              <option value="asc">Giá tăng dần</option>
+              <option value="desc">Giá giảm dần</option>
+            </select>
+            <select
+              value={stockFilter}
+              onChange={(event) => setStockFilter(event.target.value as 'all' | 'in_stock' | 'out_of_stock')}
+              className="rounded-xl border border-[#d5dce5] px-3 py-2"
+            >
+              <option value="all">Tất cả trạng thái</option>
+              <option value="in_stock">Còn hàng</option>
+              <option value="out_of_stock">Hết hàng</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => {
+                setPriceSort('default');
+                setStockFilter('all');
+              }}
+              className="rounded-xl border border-[#d8cdb9] px-3 py-2 font-semibold text-[#334155] hover:bg-[#f8f4ec]"
+            >
+              Xóa bộ lọc
+            </button>
+          </div>
+        ) : null}
+
+        {!isLoading && categoryProducts.length === 0 ? <p>Chưa có sản phẩm trong danh mục này.</p> : null}
+        {!isLoading && categoryProducts.length > 0 && filteredProducts.length === 0 ? <p>Không có sản phẩm phù hợp bộ lọc.</p> : null}
 
         <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
           {filteredProducts.map((product) => (

@@ -26,7 +26,10 @@ export class CategoriesController {
     @Body() dto: CreateCategoriesDto,
     @Req() req: { headers: { authorization?: string; referer?: string } },
   ) {
-    return this.service.create(dto, resolveAuthorizationForSwagger(req.headers));
+    return this.service.create(
+      dto,
+      resolveAuthorizationForSwagger(req.headers),
+    );
   }
 
   @Get()
@@ -55,7 +58,11 @@ export class CategoriesController {
     @Body() dto: UpdateCategoriesDto,
     @Req() req: { headers: { authorization?: string; referer?: string } },
   ) {
-    return this.service.update(id, dto, resolveAuthorizationForSwagger(req.headers));
+    return this.service.update(
+      id,
+      dto,
+      resolveAuthorizationForSwagger(req.headers),
+    );
   }
 
   @Delete(':id')

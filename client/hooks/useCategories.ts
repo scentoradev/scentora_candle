@@ -9,6 +9,8 @@ export type CategoryItem = {
   slug: string;
   description?: string | null;
   parent_id?: string | null;
+  sort_order?: number;
+  is_home_visible?: boolean;
 };
 
 export function useCategories() {

@@ -40,7 +40,7 @@ export function useDashboardCounts() {
       setLoading(true);
       setError(null);
       try {
-        const [categoriesAll, productsAll, categoriesParent, productsCategory] = await Promise.all([
+        const [categoriesAll, productsAll, categoriesParent, productsCategory] = await Promise.allSettled([
           apiGet<CountAllResponse>('/categories/count/all'),
           apiGet<CountAllResponse>('/products/count/all'),
           apiGet<CountByParentResponse>('/categories/count/by-parent'),
@@ -48,10 +48,18 @@ export function useDashboardCounts() {
         ]);
 
         if (!active) return;
-        setCategoriesTotal(categoriesAll.total ?? 0);
-        setProductsTotal(productsAll.total ?? 0);
-        setCategoryByParent(categoriesParent.items ?? []);
-        setProductByCategory(productsCategory.items ?? []);
+        setCategoriesTotal(
+          categoriesAll.status === 'fulfilled' ? (categoriesAll.value.total ?? 0) : 0,
+        );
+        setProductsTotal(
+          productsAll.status === 'fulfilled' ? (productsAll.value.total ?? 0) : 0,
+        );
+        setCategoryByParent(
+          categoriesParent.status === 'fulfilled' ? (categoriesParent.value.items ?? []) : [],
+        );
+        setProductByCategory(
+          productsCategory.status === 'fulfilled' ? (productsCategory.value.items ?? []) : [],
+        );
       } catch (err) {
         if (!active) return;
         setError(err instanceof Error ? err.message : 'Load counts failed');

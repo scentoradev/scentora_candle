@@ -1,4 +1,7 @@
-﻿import Link from 'next/link';
+﻿import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { DEFAULT_PRODUCT_IMAGE } from '@/constants/media';
+import { getImageCandidates } from '@/utils/image';
 
 type BlogPostCardProps = {
   title: string;
@@ -8,11 +11,24 @@ type BlogPostCardProps = {
 };
 
 export default function BlogPostCard({ title, desc, image, slug }: BlogPostCardProps) {
+  const [imageIndex, setImageIndex] = useState(0);
+  const candidates = useMemo(() => getImageCandidates(image || DEFAULT_PRODUCT_IMAGE), [image]);
+  const imageUrl = candidates[imageIndex] || DEFAULT_PRODUCT_IMAGE;
+
   return (
     <article className="overflow-hidden rounded-[28px] bg-white shadow-sm transition hover:-translate-y-2 hover:shadow-xl">
       <div className="h-[220px] w-full overflow-hidden sm:h-[260px] md:h-[280px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={image} alt={title} className="h-full w-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
+        <img
+          src={imageUrl}
+          alt={title}
+          className="h-full w-full object-cover"
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={() => {
+            setImageIndex((prev) => (prev + 1 < candidates.length ? prev + 1 : prev));
+          }}
+        />
       </div>
 
       <div className="p-5 sm:p-7">

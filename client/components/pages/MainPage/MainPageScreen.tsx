@@ -28,68 +28,36 @@ export default function MainPage() {
     [categories],
   );
 
-  const featuredCandleProducts = useMemo(() => {
-    const candleCategoryIds = new Set(
-      categories
-        .filter((category) => category.slug.toLowerCase().includes('nen'))
-        .map((category) => category.id),
-    );
-
-    const sourceProducts =
-      candleCategoryIds.size > 0
-        ? products.filter((product) => product.category_id && candleCategoryIds.has(product.category_id))
-        : products;
-
-    return shuffleArray(sourceProducts).slice(0, 4).map((item) => ({
-      id: item.id,
-      slug: item.slug,
-      name: item.name,
-      shortDescription: item.short_description || item.description || '',
-      price: formatVnd(item.price),
-      tag: 'Nến thơm',
-      image: item.thumbnail_url || DEFAULT_PRODUCT_IMAGE,
-    }));
-  }, [categories, products]);
-
-  const randomCategorySections = useMemo(() => {
-    const candleCategoryIds = new Set(
-      categories
-        .filter((category) => category.slug.toLowerCase().includes('nen'))
-        .map((category) => category.id),
-    );
-
+  const categorySections = useMemo(() => {
     const productsByCategory = new Map<string, typeof products>();
     products.forEach((product) => {
-      if (!product.category_id || candleCategoryIds.has(product.category_id)) return;
+      if (!product.category_id) return;
       const bucket = productsByCategory.get(product.category_id) ?? [];
       bucket.push(product);
       productsByCategory.set(product.category_id, bucket);
     });
 
-    const categoryIds = Array.from(productsByCategory.keys());
-    return shuffleArray(categoryIds).slice(0, 2).map((categoryId) => {
-      const randomProducts = shuffleArray(productsByCategory.get(categoryId) ?? []).slice(0, 4);
+    const categoryList = categories.filter((category) => category.is_home_visible !== false);
+
+    return categoryList.map((category) => {
+      const randomProducts = shuffleArray(productsByCategory.get(category.id) ?? []).slice(0, 4);
       return {
-        categoryId,
-        categoryName: categoryNameById.get(categoryId) || 'Danh mục khác',
-        categorySlug: categories.find((category) => category.id === categoryId)?.slug || '',
+        categoryId: category.id,
+        categoryName: category.name || categoryNameById.get(category.id) || 'Danh mục khác',
+        categorySlug: category.slug || '',
         products: randomProducts.map((item) => ({
           id: item.id,
           slug: item.slug,
           name: item.name,
           shortDescription: item.short_description || item.description || '',
           price: formatVnd(item.price),
-          tag: 'Gợi ý',
+          tag: category.slug.toLowerCase().includes('nen') ? 'Nến thơm' : 'Gợi ý',
           image: item.thumbnail_url || DEFAULT_PRODUCT_IMAGE,
         })),
       };
     });
   }, [categories, products, categoryNameById]);
 
-  const displayCategories = useMemo(
-    () => shuffleArray(categories).slice(0, 3).map((category) => category.name),
-    [categories],
-  );
   const heroSlides = useMemo(() => {
     const parseExtra = (value?: string | null) =>
       (value ?? '')
@@ -189,54 +157,45 @@ export default function MainPage() {
         </div>
       </section>
 
-      <section className="border-b border-[#eadfce] bg-[#f4efe7] px-4 py-5 sm:px-8 sm:py-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <p className="text-sm uppercase tracking-[0.25em] text-[#0B2D4D]">Hương thơm cao cấp cho không gian sống</p>
-          <div className="flex gap-3 text-sm">
-            {displayCategories.map((categoryName) => (
-              <button key={categoryName} className="rounded-full border border-[#0B2D4D]/20 px-5 py-2">{categoryName}</button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="w-full px-4 py-12 sm:px-8 sm:py-16 md:px-10 md:py-20 lg:px-14">
-        <div className="mb-12 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div>
-            <p className="mb-3 text-sm uppercase tracking-[0.25em] text-[#D4AF37]">Bộ sưu tập đặc trưng</p>
-            <h2 className="text-3xl font-bold text-[#0B2D4D] sm:text-4xl md:text-5xl">Nến thơm nổi bật</h2>
-          </div>
-        </div>
-
-        {loading ? <p>Đang tải sản phẩm...</p> : null}
-
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
-          {featuredCandleProducts.map((product) => (
-            <MainProductCard key={product.id} {...product} />
-          ))}
-        </div>
-      </section>
-
-      {randomCategorySections.map((section) => (
+      {categorySections.map((section) => (
         <section key={section.categoryId} className="w-full px-4 py-10 sm:px-8 md:px-10 lg:px-14">
           <div className="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="mb-3 text-sm uppercase tracking-[0.25em] text-[#D4AF37]">Khám phá thêm</p>
-              <h2 className="text-3xl font-bold text-[#0B2D4D] md:text-4xl">{section.categoryName}</h2>
+              <h2 className="text-3xl font-bold text-[#0B2D4D] md:text-5xl">{section.categoryName}</h2>
             </div>
             {section.categorySlug ? (
               <a
                 href={`/${section.categorySlug}`}
                 className="inline-flex items-center rounded-full border border-[#0B2D4D] px-5 py-2 text-sm font-semibold text-[#0B2D4D] transition hover:bg-[#0B2D4D] hover:text-white"
               >
-                Xem thêm danh mục
+                Xem thêm
               </a>
             ) : null}
           </div>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
-            {section.products.map((product) => (
-              <MainProductCard key={product.id} {...product} />
-            ))}
+          <div className="rounded-[28px] border border-[#eadfce] bg-white/60 p-6 sm:p-8">
+            {section.products.length > 0 ? (
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
+                {section.products.map((product) => (
+                  <MainProductCard key={product.id} {...product} />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div
+                    key={`${section.categoryId}-empty-${index}`}
+                    className="overflow-hidden rounded-[28px] border border-[#e8decd] bg-white"
+                  >
+                    <div className="flex h-[260px] items-center justify-center bg-gradient-to-br from-[#f6efe3] via-[#f9f5ee] to-[#efe4d3] px-6 text-center text-sm font-semibold uppercase tracking-[0.15em] text-[#0B2D4D]/55 sm:h-[300px] md:h-[320px]">
+                      Chưa có sản phẩm
+                    </div>
+                    <div className="p-6">
+                      <p className="text-base text-[#0B2D4D]/70">Danh mục này hiện chưa có sản phẩm.</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       ))}

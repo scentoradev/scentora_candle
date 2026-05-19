@@ -14,12 +14,20 @@ export const pgProvider: Provider = {
       throw new Error('DATABASE_URL is missing in environment variables.');
     }
 
+    const isLocalDb =
+      connectionString.includes('localhost') ||
+      connectionString.includes('127.0.0.1');
+
     const pool = new Pool({
       connectionString,
-      ssl: { rejectUnauthorized: false },
-      max: 10,
-      idleTimeoutMillis: 30_000,
+      ssl: isLocalDb ? false : { rejectUnauthorized: false },
+      max: 5,
+      min: 0,
+      idleTimeoutMillis: 10_000,
       connectionTimeoutMillis: 10_000,
+      query_timeout: 60_000,
+      statement_timeout: 60_000,
+      maxLifetimeSeconds: 60,
       keepAlive: true,
     });
 

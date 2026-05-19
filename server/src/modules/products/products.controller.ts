@@ -26,12 +26,21 @@ export class ProductsController {
     @Body() dto: CreateProductsDto,
     @Req() req: { headers: { authorization?: string; referer?: string } },
   ) {
-    return this.service.create(dto, resolveAuthorizationForSwagger(req.headers));
+    return this.service.create(
+      dto,
+      resolveAuthorizationForSwagger(req.headers),
+    );
   }
 
   @Get()
-  findAll(@Query() query: QueryProductsDto) {
-    return this.service.findAll(query);
+  findAll(
+    @Query() query: QueryProductsDto,
+    @Req() req: { headers: { authorization?: string; referer?: string } },
+  ) {
+    return this.service.findAll(
+      query,
+      resolveAuthorizationForSwagger(req.headers),
+    );
   }
 
   @Get('count/all')
@@ -55,7 +64,11 @@ export class ProductsController {
     @Body() dto: UpdateProductsDto,
     @Req() req: { headers: { authorization?: string; referer?: string } },
   ) {
-    return this.service.update(id, dto, resolveAuthorizationForSwagger(req.headers));
+    return this.service.update(
+      id,
+      dto,
+      resolveAuthorizationForSwagger(req.headers),
+    );
   }
 
   @Delete(':id')

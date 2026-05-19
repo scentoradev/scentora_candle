@@ -9,4 +9,7 @@ export class QueryProductsDto {
 
   @ApiPropertyOptional({ example: 'lavender' })
   search?: string;
+
+  @ApiPropertyOptional({ example: false })
+  include_inactive?: boolean;
 }

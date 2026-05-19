@@ -1,4 +1,4 @@
-export type ContentType = 'policy' | 'blog' | 'hero';
+export type ContentType = 'policy' | 'blog' | 'hero' | 'about';
 
 export interface ContentPageRecord {
   id: string;
@@ -13,4 +13,3 @@ export interface ContentPageRecord {
   created_at: string;
   updated_at: string;
 }
-

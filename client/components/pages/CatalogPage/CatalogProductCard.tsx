@@ -1,24 +1,36 @@
-﻿import Link from 'next/link';
+﻿import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import RichTextContent from '@/components/common/RichTextContent';
 import { ProductItem } from '@/hooks/useProducts';
 import { DEFAULT_PRODUCT_IMAGE } from '@/constants/media';
 import { formatVnd } from '@/utils/format';
+import { getImageCandidates } from '@/utils/image';
 
 type CatalogProductCardProps = {
   product: ProductItem;
 };
 
 export default function CatalogProductCard({ product }: CatalogProductCardProps) {
+  const [imageIndex, setImageIndex] = useState(0);
+  const candidates = useMemo(
+    () => getImageCandidates(product.thumbnail_url || DEFAULT_PRODUCT_IMAGE),
+    [product.thumbnail_url],
+  );
+  const imageUrl = candidates[imageIndex] || DEFAULT_PRODUCT_IMAGE;
+
   return (
     <Link href={`/san_pham/${product.slug}`} className="block overflow-hidden rounded-3xl border border-[#eee2d2] bg-white">
       <div className="relative h-80 w-full">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={product.thumbnail_url || DEFAULT_PRODUCT_IMAGE}
+          src={imageUrl}
           alt={product.name}
           className="h-full w-full object-cover"
           loading="lazy"
           referrerPolicy="no-referrer"
+          onError={() => {
+            setImageIndex((prev) => (prev + 1 < candidates.length ? prev + 1 : prev));
+          }}
         />
       </div>
       <div className="p-6">
@@ -43,6 +55,3 @@ export default function CatalogProductCard({ product }: CatalogProductCardProps)
     </Link>
   );
 }
-
-
-

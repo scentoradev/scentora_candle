@@ -26,7 +26,10 @@ export class UsersController {
     @Body() dto: CreateUsersDto,
     @Req() req: { headers: { authorization?: string; referer?: string } },
   ) {
-    return this.service.create(dto, resolveAuthorizationForSwagger(req.headers));
+    return this.service.create(
+      dto,
+      resolveAuthorizationForSwagger(req.headers),
+    );
   }
 
   @Get()
@@ -34,7 +37,10 @@ export class UsersController {
     @Query() query: QueryUsersDto,
     @Req() req: { headers: { authorization?: string; referer?: string } },
   ) {
-    return this.service.findAll(query, resolveAuthorizationForSwagger(req.headers));
+    return this.service.findAll(
+      query,
+      resolveAuthorizationForSwagger(req.headers),
+    );
   }
 
   @Get(':id')
@@ -42,7 +48,10 @@ export class UsersController {
     @Param('id') id: string,
     @Req() req: { headers: { authorization?: string; referer?: string } },
   ) {
-    return this.service.findOne(id, resolveAuthorizationForSwagger(req.headers));
+    return this.service.findOne(
+      id,
+      resolveAuthorizationForSwagger(req.headers),
+    );
   }
 
   @Patch(':id')
@@ -51,7 +60,11 @@ export class UsersController {
     @Body() dto: UpdateUsersDto,
     @Req() req: { headers: { authorization?: string; referer?: string } },
   ) {
-    return this.service.update(id, dto, resolveAuthorizationForSwagger(req.headers));
+    return this.service.update(
+      id,
+      dto,
+      resolveAuthorizationForSwagger(req.headers),
+    );
   }
 
   @Delete(':id')

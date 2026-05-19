@@ -1,6 +1,8 @@
-import type { FormEvent } from 'react';
+﻿import { useRef } from 'react';
+import type { ChangeEvent, DragEvent, FormEvent } from 'react';
 import { apiDelete, apiPatch, apiPost } from '@/hooks/api';
 import RichTextEditor from '@/components/common/RichTextEditor';
+import { normalizeImageUrl } from '@/utils/image';
 import CategoryCard from './CategoryCard';
 import ProductCard from './ProductCard';
 import CategoryChildrenPanel from './CategoryChildrenPanel';
@@ -14,26 +16,28 @@ type ProductImage = {
 };
 
 type Props = {
+  showCategorySection?: boolean;
+  showProductSection?: boolean;
   busy: boolean;
   categories: Category[];
+  setCategories: React.Dispatch<React.SetStateAction<Category[]>>;
   filteredCategories: Category[];
-  childCategoriesMap: Map<string, Category[]>;
   selectedParentCategoryId: string;
   setSelectedParentCategoryId: React.Dispatch<React.SetStateAction<string>>;
   selectedParentCategory: Category | null;
   selectedParentChildren: Category[];
-  newChildCategory: { name: string; slug: string; description: string };
-  setNewChildCategory: React.Dispatch<React.SetStateAction<{ name: string; slug: string; description: string }>>;
+  newChildCategory: { name: string; slug: string; description: string; sortOrder: string; isHomeVisible: boolean };
+  setNewChildCategory: React.Dispatch<React.SetStateAction<{ name: string; slug: string; description: string; sortOrder: string; isHomeVisible: boolean }>>;
   editingChildCategoryId: string;
   setEditingChildCategoryId: React.Dispatch<React.SetStateAction<string>>;
-  editingChildCategory: { name: string; slug: string; description: string };
-  setEditingChildCategory: React.Dispatch<React.SetStateAction<{ name: string; slug: string; description: string }>>;
-  newCategory: { name: string; slug: string; description: string; parentId: string };
-  setNewCategory: React.Dispatch<React.SetStateAction<{ name: string; slug: string; description: string; parentId: string }>>;
+  editingChildCategory: { name: string; slug: string; description: string; sortOrder: string; isHomeVisible: boolean };
+  setEditingChildCategory: React.Dispatch<React.SetStateAction<{ name: string; slug: string; description: string; sortOrder: string; isHomeVisible: boolean }>>;
+  newCategory: { name: string; slug: string; description: string; parentId: string; sortOrder: string; isHomeVisible: boolean };
+  setNewCategory: React.Dispatch<React.SetStateAction<{ name: string; slug: string; description: string; parentId: string; sortOrder: string; isHomeVisible: boolean }>>;
   editingCategoryId: string;
   setEditingCategoryId: React.Dispatch<React.SetStateAction<string>>;
-  editingCategory: { name: string; slug: string; description: string; parentId: string };
-  setEditingCategory: React.Dispatch<React.SetStateAction<{ name: string; slug: string; description: string; parentId: string }>>;
+  editingCategory: { name: string; slug: string; description: string; parentId: string; sortOrder: string; isHomeVisible: boolean };
+  setEditingCategory: React.Dispatch<React.SetStateAction<{ name: string; slug: string; description: string; parentId: string; sortOrder: string; isHomeVisible: boolean }>>;
   categorySearch: string;
   setCategorySearch: React.Dispatch<React.SetStateAction<string>>;
   submitCategory: (e: FormEvent) => Promise<void>;
@@ -62,10 +66,12 @@ type Props = {
 
 export default function CatalogManagementSection(props: Props) {
   const {
+    showCategorySection = true,
+    showProductSection = true,
     busy,
     categories,
+    setCategories,
     filteredCategories,
-    childCategoriesMap,
     selectedParentCategoryId,
     setSelectedParentCategoryId,
     selectedParentCategory,
@@ -107,9 +113,144 @@ export default function CatalogManagementSection(props: Props) {
     askConfirm,
     closeConfirm,
   } = props;
+  const newThumbInputRef = useRef<HTMLInputElement>(null);
+  const newGalleryInputRef = useRef<HTMLInputElement>(null);
+  const editThumbInputRef = useRef<HTMLInputElement>(null);
+  const editGalleryInputRef = useRef<HTMLInputElement>(null);
+  const childrenByParent = new Map<string, Category[]>();
+  categories.forEach((category) => {
+    const key = category.parent_id || '__root__';
+    const list = childrenByParent.get(key) ?? [];
+    list.push(category);
+    childrenByParent.set(key, list);
+  });
+  childrenByParent.forEach((list) => {
+    list.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.name.localeCompare(b.name, 'vi'));
+  });
+
+  type CategoryTreeOption = { id: string; label: string; depth: number; parentId: string | null };
+  const categoryTreeOptions: CategoryTreeOption[] = [];
+  const appendOptions = (parentId: string | null, depth: number) => {
+    const key = parentId || '__root__';
+    const nodes = childrenByParent.get(key) ?? [];
+    nodes.forEach((node, index) => {
+      const isLast = index === nodes.length - 1;
+      const branch = depth === 0 ? '' : `${'    '.repeat(depth - 1)}${isLast ? '└─ ' : '├─ '}`;
+      categoryTreeOptions.push({
+        id: node.id,
+        label: `${branch}${node.name}`,
+        depth,
+        parentId: node.parent_id ?? null,
+      });
+      appendOptions(node.id, depth + 1);
+    });
+  };
+  appendOptions(null, 0);
+  const parentCategoryOptions = categoryTreeOptions.filter((category) => category.depth === 0);
+  const childCategoryTreeOptions = categoryTreeOptions.filter((category) => category.depth > 0);
+  const countDescendants = (categoryId: string): number => {
+    const directChildren = categories.filter((child) => child.parent_id === categoryId);
+    if (!directChildren.length) return 0;
+    return directChildren.reduce((sum, child) => sum + 1 + countDescendants(child.id), 0);
+  };
+  const readFileAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('Không thể đọc file ảnh'));
+      reader.readAsDataURL(file);
+    });
+
+  const extractDroppedUrls = (event: DragEvent<HTMLElement>) => {
+    const uriList = event.dataTransfer.getData('text/uri-list');
+    const textPlain = event.dataTransfer.getData('text/plain');
+    const values = [uriList, textPlain]
+      .flatMap((raw) => raw.split('\n'))
+      .map((line) => line.trim())
+      .filter(Boolean);
+    return values.filter((item) => /^https?:\/\//i.test(item) || item.startsWith('data:image/'));
+  };
+
+  const onDropThumbnail = async (event: DragEvent<HTMLElement>, target: 'new' | 'edit') => {
+    event.preventDefault();
+    const imageFiles = Array.from(event.dataTransfer.files).filter((file) => file.type.startsWith('image/'));
+    if (imageFiles.length > 0) {
+      try {
+        const dataUrl = await readFileAsDataUrl(imageFiles[0]);
+        if (target === 'new') {
+          setNewProduct((prev) => ({ ...prev, thumbnailUrl: dataUrl }));
+        } else {
+          setEditingProduct((prev) => ({ ...prev, thumbnailUrl: dataUrl }));
+        }
+      } catch {}
+      return;
+    }
+    const urls = extractDroppedUrls(event);
+    if (urls.length > 0) {
+      const normalized = normalizeImageUrl(urls[0]);
+      if (target === 'new') {
+        setNewProduct((prev) => ({ ...prev, thumbnailUrl: normalized }));
+      } else {
+        setEditingProduct((prev) => ({ ...prev, thumbnailUrl: normalized }));
+      }
+    }
+  };
+
+  const onDropGallery = async (event: DragEvent<HTMLElement>, target: 'new' | 'edit') => {
+    event.preventDefault();
+    const urls = extractDroppedUrls(event);
+    const files = await Promise.all(
+      Array.from(event.dataTransfer.files)
+        .filter((file) => file.type.startsWith('image/'))
+        .map((file) => readFileAsDataUrl(file)),
+    );
+    const nextLines = [...urls.map((url) => normalizeImageUrl(url)), ...files].filter(Boolean);
+    if (nextLines.length === 0) return;
+    if (target === 'new') {
+      setNewProduct((prev) => ({
+        ...prev,
+        galleryUrls: [prev.galleryUrls.trim(), ...nextLines].filter(Boolean).join('\n'),
+      }));
+      return;
+    }
+    setEditingProduct((prev) => ({
+      ...prev,
+      galleryUrls: [prev.galleryUrls.trim(), ...nextLines].filter(Boolean).join('\n'),
+    }));
+  };
+  const onPickThumbnail = async (event: ChangeEvent<HTMLInputElement>, target: 'new' | 'edit') => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const dataUrl = await readFileAsDataUrl(file);
+    if (target === 'new') {
+      setNewProduct((prev) => ({ ...prev, thumbnailUrl: dataUrl }));
+    } else {
+      setEditingProduct((prev) => ({ ...prev, thumbnailUrl: dataUrl }));
+    }
+    event.target.value = '';
+  };
+
+  const onPickGallery = async (event: ChangeEvent<HTMLInputElement>, target: 'new' | 'edit') => {
+    const files = Array.from(event.target.files ?? []);
+    if (files.length === 0) return;
+    const dataUrls = await Promise.all(files.map((file) => readFileAsDataUrl(file)));
+    if (target === 'new') {
+      setNewProduct((prev) => ({
+        ...prev,
+        galleryUrls: [prev.galleryUrls.trim(), ...dataUrls].filter(Boolean).join('\n'),
+      }));
+    } else {
+      setEditingProduct((prev) => ({
+        ...prev,
+        galleryUrls: [prev.galleryUrls.trim(), ...dataUrls].filter(Boolean).join('\n'),
+      }));
+    }
+    event.target.value = '';
+  };
 
   return (
     <>
+      {showCategorySection ? (
       <section className="rounded-3xl border border-[#d8cdb9] bg-white p-6">
         <h3 className="mb-5 text-2xl font-bold text-[#0B2D4D]">Danh mục</h3>
         <form onSubmit={(e) => void submitCategory(e)} className="mb-5 space-y-3 rounded-2xl border border-[#e7dccb] bg-[#fcfaf6] p-4">
@@ -121,10 +262,26 @@ export default function CatalogManagementSection(props: Props) {
           <RichTextEditor value={newCategory.description} onChange={(value) => setNewCategory((v) => ({ ...v, description: value }))} placeholder="Mô tả ngắn danh mục" minHeight={120} />
           <select value={newCategory.parentId} onChange={(e) => setNewCategory((v) => ({ ...v, parentId: e.target.value }))} className="w-full rounded-xl border px-3 py-2">
             <option value="">Không có danh mục cha</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>{category.name}</option>
+            {parentCategoryOptions.map((category) => (
+              <option key={category.id} value={category.id}>{category.label}</option>
+            ))}
+            {childCategoryTreeOptions.length ? <option disabled>──────────</option> : null}
+            {childCategoryTreeOptions.map((category) => (
+              <option key={category.id} value={category.id}>{category.label}</option>
             ))}
           </select>
+          <input type="number" value={newCategory.sortOrder} onChange={(e) => setNewCategory((v) => ({ ...v, sortOrder: e.target.value }))} placeholder="Thứ tự hiển thị (0,1,2...)" className="w-full rounded-xl border px-3 py-2" />
+          <label className="flex items-center justify-between rounded-xl border px-3 py-2">
+            <span className="text-sm font-semibold text-[#334155]">Hiển thị ở Home Page</span>
+            <button
+              type="button"
+              onClick={() => setNewCategory((v) => ({ ...v, isHomeVisible: !v.isHomeVisible }))}
+              className={`relative h-7 w-14 rounded-full transition ${newCategory.isHomeVisible ? 'bg-[#0B2D4D]' : 'bg-[#cbd5e1]'}`}
+              aria-pressed={newCategory.isHomeVisible}
+            >
+              <span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${newCategory.isHomeVisible ? 'left-7' : 'left-1'}`} />
+            </button>
+          </label>
           <button disabled={busy} className="rounded-full bg-[#0B2D4D] px-4 py-2 text-sm font-semibold text-white">Lưu danh mục</button>
         </form>
         <div className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -132,14 +289,24 @@ export default function CatalogManagementSection(props: Props) {
           <button type="button" onClick={() => setCategorySearch('')} className="rounded-xl border border-[#d8cdb9] px-3 py-2 text-sm font-semibold text-[#334155] hover:bg-[#f8f4ec]">Xóa bộ lọc danh mục</button>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredCategories.filter((category) => !category.parent_id).map((category) => (
+          {filteredCategories
+            .filter((category) => countDescendants(category.id) > 0)
+            .map((category) => (
             <CategoryCard
               key={category.id}
               category={category}
-              onOpenChildren={childCategoriesMap.get(category.id)?.length ? () => setSelectedParentCategoryId(category.id) : undefined}
+              childCount={countDescendants(category.id)}
+              onOpenChildren={categories.some((child) => child.parent_id === category.id) ? () => setSelectedParentCategoryId(category.id) : undefined}
               onEdit={() => {
                 setEditingCategoryId(category.id);
-                setEditingCategory({ name: category.name, slug: category.slug, description: category.description || '', parentId: category.parent_id || '' });
+                setEditingCategory({
+                  name: category.name,
+                  slug: category.slug,
+                  description: category.description || '',
+                  parentId: category.parent_id || '',
+                  sortOrder: String(category.sort_order ?? 0),
+                  isHomeVisible: category.is_home_visible ?? true,
+                });
               }}
               onDelete={() => askConfirm('Xác nhận xóa', `Bạn có chắc muốn xóa danh mục "${category.name}"?`, () => { closeConfirm(); void run(async () => { await apiDelete(`/categories/${category.id}`, true); }, 'Đã xóa danh mục'); })}
             />
@@ -152,7 +319,7 @@ export default function CatalogManagementSection(props: Props) {
               askConfirm('Xác nhận lưu', 'Bạn có chắc muốn lưu thay đổi danh mục này?', () => {
                 closeConfirm();
                 void run(async () => {
-                  await apiPatch(`/categories/${editingCategoryId}`, { data: { name: editingCategory.name, slug: editingCategory.slug, description: editingCategory.description, parent_id: editingCategory.parentId || null } }, true);
+                  await apiPatch(`/categories/${editingCategoryId}`, { data: { name: editingCategory.name, slug: editingCategory.slug, description: editingCategory.description, parent_id: editingCategory.parentId || null, sort_order: Number(editingCategory.sortOrder || 0), is_home_visible: editingCategory.isHomeVisible } }, true);
                   setEditingCategoryId('');
                 }, 'Đã cập nhật danh mục');
               });
@@ -166,45 +333,81 @@ export default function CatalogManagementSection(props: Props) {
             <RichTextEditor value={editingCategory.description} onChange={(value) => setEditingCategory((v) => ({ ...v, description: value }))} placeholder="Mô tả ngắn danh mục" minHeight={120} />
             <select value={editingCategory.parentId} onChange={(e) => setEditingCategory((v) => ({ ...v, parentId: e.target.value }))} className="rounded-xl border px-3 py-2">
               <option value="">Không có danh mục cha</option>
-              {categories.filter((category) => category.id !== editingCategoryId).map((category) => (
-                <option key={category.id} value={category.id}>{category.name}</option>
+              {parentCategoryOptions.filter((category) => category.id !== editingCategoryId).map((category) => (
+                <option key={category.id} value={category.id}>{category.label}</option>
+              ))}
+              {childCategoryTreeOptions.filter((category) => category.id !== editingCategoryId).length ? <option disabled>──────────</option> : null}
+              {childCategoryTreeOptions.filter((category) => category.id !== editingCategoryId).map((category) => (
+                <option key={category.id} value={category.id}>{category.label}</option>
               ))}
             </select>
+            <input type="number" value={editingCategory.sortOrder} onChange={(e) => setEditingCategory((v) => ({ ...v, sortOrder: e.target.value }))} className="rounded-xl border px-3 py-2" placeholder="Thứ tự hiển thị" />
+            <label className="flex items-center justify-between rounded-xl border px-3 py-2">
+              <span className="text-sm font-semibold text-[#334155]">Hiển thị ở Home Page</span>
+              <button
+                type="button"
+                onClick={() => setEditingCategory((v) => ({ ...v, isHomeVisible: !v.isHomeVisible }))}
+                className={`relative h-7 w-14 rounded-full transition ${editingCategory.isHomeVisible ? 'bg-[#0B2D4D]' : 'bg-[#cbd5e1]'}`}
+                aria-pressed={editingCategory.isHomeVisible}
+              >
+                <span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${editingCategory.isHomeVisible ? 'left-7' : 'left-1'}`} />
+              </button>
+            </label>
             <button className="rounded-xl bg-[#0B2D4D] px-3 py-2 text-sm font-semibold text-white">Lưu sửa danh mục</button>
           </form>
         ) : null}
       </section>
+      ) : null}
 
+      {showCategorySection ? (
       <CategoryChildrenPanel
         parentCategory={selectedParentCategory}
         childrenCategories={selectedParentChildren}
         newChild={newChildCategory}
         editingChildId={editingChildCategoryId}
         editingChild={editingChildCategory}
-        onNewChildChange={(field, value) => setNewChildCategory((prev) => ({ ...prev, [field]: value }))}
+        onBackToParent={(parentId) => setSelectedParentCategoryId(parentId)}
+        onOpenChildren={(categoryId) => setSelectedParentCategoryId(categoryId)}
+        onNewChildChange={(field, value) =>
+          setNewChildCategory((prev) => ({
+            ...prev,
+            [field]: field === 'isHomeVisible' ? value === 'true' : value,
+          }))
+        }
         onCreateChild={() => {
           if (!selectedParentCategoryId) return;
           askConfirm('Xác nhận lưu', 'Bạn có chắc muốn thêm danh mục con này?', () => {
             closeConfirm();
             void run(async () => {
-              await apiPost('/categories', { data: { name: newChildCategory.name, slug: newChildCategory.slug, description: newChildCategory.description, parent_id: selectedParentCategoryId } }, true);
-              setNewChildCategory({ name: '', slug: '', description: '' });
+              const createdRes = await apiPost<{ data?: Category }>('/categories', { data: { name: newChildCategory.name, slug: newChildCategory.slug, description: newChildCategory.description, parent_id: selectedParentCategoryId, sort_order: Number(newChildCategory.sortOrder || 0), is_home_visible: newChildCategory.isHomeVisible } }, true);
+              if (createdRes.data?.id) {
+                setCategories((prev) => [createdRes.data as Category, ...prev]);
+              }
+              setNewChildCategory({ name: '', slug: '', description: '', sortOrder: '0', isHomeVisible: true });
             }, 'Đã thêm danh mục con');
           });
         }}
         onStartEditChild={(child) => {
           setEditingChildCategoryId(child.id);
-          setEditingChildCategory({ name: child.name, slug: child.slug, description: child.description || '' });
+          setEditingChildCategory({ name: child.name, slug: child.slug, description: child.description || '', sortOrder: String(child.sort_order ?? 0), isHomeVisible: child.is_home_visible ?? true });
         }}
-        onEditingChildChange={(field, value) => setEditingChildCategory((prev) => ({ ...prev, [field]: value }))}
+        onEditingChildChange={(field, value) =>
+          setEditingChildCategory((prev) => ({
+            ...prev,
+            [field]: field === 'isHomeVisible' ? value === 'true' : value,
+          }))
+        }
         onSaveEditChild={() => {
           if (!editingChildCategoryId) return;
           askConfirm('Xác nhận lưu', 'Bạn có chắc muốn lưu sửa danh mục con này?', () => {
             closeConfirm();
             void run(async () => {
-              await apiPatch(`/categories/${editingChildCategoryId}`, { data: { name: editingChildCategory.name, slug: editingChildCategory.slug, description: editingChildCategory.description, parent_id: selectedParentCategoryId || null } }, true);
+              const updatedRes = await apiPatch<{ data?: Category }>(`/categories/${editingChildCategoryId}`, { data: { name: editingChildCategory.name, slug: editingChildCategory.slug, description: editingChildCategory.description, parent_id: selectedParentCategoryId || null, sort_order: Number(editingChildCategory.sortOrder || 0), is_home_visible: editingChildCategory.isHomeVisible } }, true);
+              if (updatedRes.data?.id) {
+                setCategories((prev) => prev.map((item) => (item.id === updatedRes.data!.id ? (updatedRes.data as Category) : item)));
+              }
               setEditingChildCategoryId('');
-              setEditingChildCategory({ name: '', slug: '', description: '' });
+              setEditingChildCategory({ name: '', slug: '', description: '', sortOrder: '0', isHomeVisible: true });
             }, 'Đã cập nhật danh mục con');
           });
         }}
@@ -213,15 +416,18 @@ export default function CatalogManagementSection(props: Props) {
             closeConfirm();
             void run(async () => {
               await apiDelete(`/categories/${child.id}`, true);
+              setCategories((prev) => prev.filter((item) => item.id !== child.id));
               if (editingChildCategoryId === child.id) {
                 setEditingChildCategoryId('');
-                setEditingChildCategory({ name: '', slug: '', description: '' });
+                setEditingChildCategory({ name: '', slug: '', description: '', sortOrder: '0', isHomeVisible: true });
               }
             }, 'Đã xóa danh mục con');
           });
         }}
       />
+      ) : null}
 
+      {showProductSection ? (
       <section className="rounded-3xl border border-[#d8cdb9] bg-white p-6">
         <h3 className="mb-5 text-2xl font-bold text-[#0B2D4D]">Sản phẩm</h3>
         <form onSubmit={(e) => void submitProduct(e)} className="mb-5 space-y-3 rounded-2xl border border-[#e7dccb] bg-[#fcfaf6] p-4">
@@ -236,22 +442,44 @@ export default function CatalogManagementSection(props: Props) {
           </div>
           <select value={newProduct.categoryId} onChange={(e) => setNewProduct((v) => ({ ...v, categoryId: e.target.value }))} className="w-full rounded-xl border px-3 py-2">
             <option value="">Không gán danh mục</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>{category.name}</option>
+            {categoryTreeOptions.map((category) => (
+              <option key={category.id} value={category.id}>{category.label}</option>
             ))}
           </select>
           <RichTextEditor value={newProduct.shortDescription} onChange={(value) => setNewProduct((v) => ({ ...v, shortDescription: value }))} placeholder="Mô tả ngắn cho thẻ sản phẩm" minHeight={120} />
           <RichTextEditor value={newProduct.description} onChange={(value) => setNewProduct((v) => ({ ...v, description: value }))} placeholder="Mô tả chi tiết sản phẩm" />
-          <input value={newProduct.thumbnailUrl} onChange={(e) => setNewProduct((v) => ({ ...v, thumbnailUrl: e.target.value }))} placeholder="Link ảnh đại diện" className="w-full rounded-xl border px-3 py-2" />
-          <textarea value={newProduct.galleryUrls} onChange={(e) => setNewProduct((v) => ({ ...v, galleryUrls: e.target.value }))} placeholder={'Ảnh phụ (mỗi dòng 1 URL)\nhttps://.../image-1.jpg\nhttps://.../image-2.jpg'} className="min-h-24 w-full rounded-xl border px-3 py-2" />
+          <input
+            value={newProduct.thumbnailUrl}
+            onChange={(e) => setNewProduct((v) => ({ ...v, thumbnailUrl: e.target.value }))}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => void onDropThumbnail(e, 'new')}
+            placeholder="Link ảnh đại diện (kéo thả ảnh hoặc URL vào đây)"
+            className="w-full rounded-xl border px-3 py-2"
+          />
+          <button type="button" onClick={() => newThumbInputRef.current?.click()} className="w-fit rounded-xl border px-3 py-2 text-sm font-semibold">
+            Thêm ảnh đại diện
+          </button>
+          <input ref={newThumbInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => void onPickThumbnail(e, 'new')} />
+          <textarea
+            value={newProduct.galleryUrls}
+            onChange={(e) => setNewProduct((v) => ({ ...v, galleryUrls: e.target.value }))}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => void onDropGallery(e, 'new')}
+            placeholder={'Ảnh phụ (mỗi dòng 1 URL)\nCó thể kéo thả nhiều ảnh vào đây\nhttps://.../image-1.jpg\nhttps://.../image-2.jpg'}
+            className="min-h-24 w-full rounded-xl border px-3 py-2"
+          />
+          <button type="button" onClick={() => newGalleryInputRef.current?.click()} className="w-fit rounded-xl border px-3 py-2 text-sm font-semibold">
+            Thêm ảnh phụ
+          </button>
+          <input ref={newGalleryInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => void onPickGallery(e, 'new')} />
           <button disabled={busy} className="rounded-full bg-[#0B2D4D] px-4 py-2 text-sm font-semibold text-white">Lưu sản phẩm</button>
         </form>
         <div className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Tìm sản phẩm theo tên, slug..." className="rounded-xl border px-3 py-2" />
           <select value={productCategoryFilter} onChange={(e) => setProductCategoryFilter(e.target.value)} className="rounded-xl border px-3 py-2">
             <option value="all">Tất cả danh mục</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>{category.name}</option>
+            {categoryTreeOptions.map((category) => (
+              <option key={category.id} value={category.id}>{category.label}</option>
             ))}
           </select>
           <select value={productStockFilter} onChange={(e) => setProductStockFilter(e.target.value as 'all' | 'in_stock' | 'out_of_stock')} className="rounded-xl border px-3 py-2">
@@ -370,8 +598,8 @@ export default function CatalogManagementSection(props: Props) {
                     <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#64748b]">Danh mục</label>
                     <select value={editingProduct.categoryId} onChange={(e) => setEditingProduct((v) => ({ ...v, categoryId: e.target.value }))} className="w-full rounded-xl border border-[#cfd8e3] bg-white px-3 py-2.5">
                       <option value="">Không gán danh mục</option>
-                      {categories.map((category) => (
-                        <option key={category.id} value={category.id}>{category.name}</option>
+                      {categoryTreeOptions.map((category) => (
+                        <option key={category.id} value={category.id}>{category.label}</option>
                       ))}
                     </select>
                   </div>
@@ -382,7 +610,17 @@ export default function CatalogManagementSection(props: Props) {
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#64748b]">Ảnh chính (URL)</label>
-                  <input value={editingProduct.thumbnailUrl} onChange={(e) => setEditingProduct((v) => ({ ...v, thumbnailUrl: e.target.value }))} className="w-full rounded-xl border border-[#cfd8e3] bg-white px-3 py-2.5" />
+                  <input
+                    value={editingProduct.thumbnailUrl}
+                    onChange={(e) => setEditingProduct((v) => ({ ...v, thumbnailUrl: e.target.value }))}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => void onDropThumbnail(e, 'edit')}
+                    className="w-full rounded-xl border border-[#cfd8e3] bg-white px-3 py-2.5"
+                  />
+                  <button type="button" onClick={() => editThumbInputRef.current?.click()} className="mt-2 w-fit rounded-xl border px-3 py-2 text-sm font-semibold">
+                    Thêm ảnh đại diện
+                  </button>
+                  <input ref={editThumbInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => void onPickThumbnail(e, 'edit')} />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-[#64748b]">Mô tả chi tiết</label>
@@ -394,7 +632,17 @@ export default function CatalogManagementSection(props: Props) {
               <div className="space-y-4 lg:col-span-4">
                 <div className="rounded-xl border border-[#d8cdb9] bg-white p-3">
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-[#64748b]">Ảnh phụ (mỗi dòng 1 URL)</label>
-                  <textarea value={editingProduct.galleryUrls} onChange={(e) => setEditingProduct((v) => ({ ...v, galleryUrls: e.target.value }))} className="min-h-40 w-full rounded-xl border border-[#cfd8e3] px-3 py-2.5" />
+                  <textarea
+                    value={editingProduct.galleryUrls}
+                    onChange={(e) => setEditingProduct((v) => ({ ...v, galleryUrls: e.target.value }))}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => void onDropGallery(e, 'edit')}
+                    className="min-h-40 w-full rounded-xl border border-[#cfd8e3] px-3 py-2.5"
+                  />
+                  <button type="button" onClick={() => editGalleryInputRef.current?.click()} className="mt-2 w-fit rounded-xl border px-3 py-2 text-sm font-semibold">
+                    Thêm ảnh phụ
+                  </button>
+                  <input ref={editGalleryInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => void onPickGallery(e, 'edit')} />
                 </div>
                 <button className="w-full rounded-xl bg-[#0B2D4D] px-4 py-3 text-base font-semibold text-white hover:bg-[#12385c]">Lưu sửa sản phẩm</button>
               </div>
@@ -402,6 +650,12 @@ export default function CatalogManagementSection(props: Props) {
           </form>
         ) : null}
       </section>
+      ) : null}
     </>
   );
 }
+
+
+
+
+

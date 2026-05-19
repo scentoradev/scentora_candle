@@ -1,12 +1,11 @@
 ﻿'use client';
 
 import Link from 'next/link';
-import { use, useMemo } from 'react';
+import { use, useMemo, useState } from 'react';
 import RichTextContent from '@/components/common/RichTextContent';
 import { useContentPages } from '@/hooks/useContentPages';
 import { DEFAULT_PRODUCT_IMAGE } from '@/constants/media';
-
-
+import { getImageCandidates } from '@/utils/image';
 
 type BlogDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -17,6 +16,12 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
   const { items, loading } = useContentPages({ type: 'blog', onlyPublished: true });
 
   const post = useMemo(() => items.find((item) => item.slug === slug) ?? null, [items, slug]);
+  const [imageIndex, setImageIndex] = useState(0);
+  const candidates = useMemo(
+    () => getImageCandidates(post?.thumbnail_url || DEFAULT_PRODUCT_IMAGE),
+    [post?.thumbnail_url],
+  );
+  const imageUrl = candidates[imageIndex] || DEFAULT_PRODUCT_IMAGE;
 
   if (loading) return <main className="bg-[#fbfaf7] px-4 py-10 sm:px-8 sm:py-12">Đang tải bài viết...</main>;
 
@@ -35,7 +40,16 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
       <article className="mx-auto max-w-5xl overflow-hidden rounded-[24px] border border-[#eee2d2] bg-white">
         <div className="h-[240px] w-full overflow-hidden sm:h-[320px] md:h-[420px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={post.thumbnail_url || DEFAULT_PRODUCT_IMAGE} alt={post.title} className="h-full w-full object-cover" loading="eager" referrerPolicy="no-referrer" />
+          <img
+            src={imageUrl}
+            alt={post.title}
+            className="h-full w-full object-cover"
+            loading="eager"
+            referrerPolicy="no-referrer"
+            onError={() => {
+              setImageIndex((prev) => (prev + 1 < candidates.length ? prev + 1 : prev));
+            }}
+          />
         </div>
         <div className="p-5 sm:p-7 md:p-10">
           <p className="text-sm uppercase tracking-[0.2em] text-[#D4AF37]">Scentora Blog</p>
@@ -47,4 +61,3 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
     </main>
   );
 }
-

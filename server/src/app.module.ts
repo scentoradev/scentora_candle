@@ -25,4 +25,3 @@ import { ContentPagesModule } from './modules/content_pages/content_pages.module
   providers: [AppService],
 })
 export class AppModule {}
-

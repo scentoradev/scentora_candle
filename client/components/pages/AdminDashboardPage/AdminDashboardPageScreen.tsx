@@ -11,6 +11,7 @@ import { DEFAULT_PRODUCT_IMAGE } from '@/constants/media';
 import ContentManagementSection from './ContentManagementSection';
 import UserManagementSection from './UserManagementSection';
 import CatalogManagementSection from './CatalogManagementSection';
+import AboutManagementSection from './AboutManagementSection';
 
 
 type ProductImage = {
@@ -21,7 +22,7 @@ type ProductImage = {
 };
 type ContentPage = {
   id: string;
-  type: 'policy' | 'blog' | 'hero';
+  type: 'policy' | 'blog' | 'hero' | 'about';
   title: string;
   slug: string;
   summary?: string | null;
@@ -39,6 +40,28 @@ type ManagedUser = {
   updated_at?: string;
 };
 const FOOTER_MAP_SLUG = 'footer_google_map_link';
+const FOOTER_BRAND_SLUG = 'footer_brand_profile';
+
+const MOJIBAKE_PATTERN = /(?:Ã.|Ä.|Å.|Â.|áº|á»|á¼|á½|â€œ|â€|â€¦)/;
+
+function normalizeUtf8Text(value: string): string {
+  if (!value || !MOJIBAKE_PATTERN.test(value)) return value;
+  try {
+    return decodeURIComponent(escape(value));
+  } catch {
+    return value;
+  }
+}
+
+function normalizeObjectText<T extends Record<string, unknown>>(item: T): T {
+  const next = { ...item } as Record<string, unknown>;
+  for (const [key, value] of Object.entries(next)) {
+    if (typeof value === 'string') {
+      next[key] = normalizeUtf8Text(value);
+    }
+  }
+  return next as T;
+}
 
 export default function AdminPage() {
   const router = useRouter();
@@ -71,7 +94,7 @@ export default function AdminPage() {
   const [contentPages, setContentPages] = useState<ContentPage[]>([]);
   const [users, setUsers] = useState<ManagedUser[]>([]);
 
-  const [newCategory, setNewCategory] = useState({ name: '', slug: '', description: '', parentId: '' });
+  const [newCategory, setNewCategory] = useState({ name: '', slug: '', description: '', parentId: '', sortOrder: '0', isHomeVisible: true });
   const [newProduct, setNewProduct] = useState({
     name: '',
     slug: '',
@@ -85,7 +108,7 @@ export default function AdminPage() {
   });
 
   const [editingCategoryId, setEditingCategoryId] = useState('');
-  const [editingCategory, setEditingCategory] = useState({ name: '', slug: '', description: '', parentId: '' });
+  const [editingCategory, setEditingCategory] = useState({ name: '', slug: '', description: '', parentId: '', sortOrder: '0', isHomeVisible: true });
 
   const [editingProductId, setEditingProductId] = useState('');
   const [editingProduct, setEditingProduct] = useState({
@@ -98,9 +121,9 @@ export default function AdminPage() {
     thumbnailUrl: '',
     galleryUrls: '',
   });
-  const [newChildCategory, setNewChildCategory] = useState({ name: '', slug: '', description: '' });
+  const [newChildCategory, setNewChildCategory] = useState({ name: '', slug: '', description: '', sortOrder: '0', isHomeVisible: true });
   const [editingChildCategoryId, setEditingChildCategoryId] = useState('');
-  const [editingChildCategory, setEditingChildCategory] = useState({ name: '', slug: '', description: '' });
+  const [editingChildCategory, setEditingChildCategory] = useState({ name: '', slug: '', description: '', sortOrder: '0', isHomeVisible: true });
   const [selectedParentCategoryId, setSelectedParentCategoryId] = useState('');
   const [categorySearch, setCategorySearch] = useState('');
   const [productSearch, setProductSearch] = useState('');
@@ -110,11 +133,11 @@ export default function AdminPage() {
   const [newBlog, setNewBlog] = useState({ title: '', slug: '', summary: '', content: '', thumbnailUrl: '', sortOrder: '0', isPublished: true });
   const [newHero, setNewHero] = useState({ targetUrl: '', thumbnailUrl: '', extraBanners: '', sortOrder: '0', isPublished: true });
   const [editingContentId, setEditingContentId] = useState('');
-  const [editingContent, setEditingContent] = useState({ type: 'policy' as 'policy' | 'blog' | 'hero', title: '', slug: '', summary: '', content: '', thumbnailUrl: '', sortOrder: '0', isPublished: true });
+  const [editingContent, setEditingContent] = useState({ type: 'policy' as 'policy' | 'blog' | 'hero' | 'about', title: '', slug: '', summary: '', content: '', thumbnailUrl: '', sortOrder: '0', isPublished: true });
   const [newUser, setNewUser] = useState({ email: '', fullName: '', password: '' });
   const [editingUserId, setEditingUserId] = useState('');
   const [editingUser, setEditingUser] = useState({ fullName: '', password: '' });
-  const [activeAdminSection, setActiveAdminSection] = useState<'catalog' | 'content' | 'users'>('catalog');
+  const [activeAdminSection, setActiveAdminSection] = useState<'categories' | 'products' | 'content' | 'about' | 'users'>('categories');
 
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c.name])), [categories]);
   const orderedCategories = useMemo(
@@ -123,6 +146,8 @@ export default function AdminPage() {
         const aIsChild = Boolean(a.parent_id);
         const bIsChild = Boolean(b.parent_id);
         if (aIsChild !== bIsChild) return aIsChild ? 1 : -1;
+        const sortDiff = (a.sort_order ?? 0) - (b.sort_order ?? 0);
+        if (sortDiff !== 0) return sortDiff;
         return a.name.localeCompare(b.name, 'vi');
       }),
     [categories],
@@ -163,16 +188,6 @@ export default function AdminPage() {
       return byKeyword && byCategory && byStock;
     });
   }, [products, productSearch, productCategoryFilter, productStockFilter]);
-  const childCategoriesMap = useMemo(() => {
-    const map = new Map<string, Category[]>();
-    categories.forEach((category) => {
-      if (!category.parent_id) return;
-      const list = map.get(category.parent_id) ?? [];
-      list.push(category);
-      map.set(category.parent_id, list);
-    });
-    return map;
-  }, [categories]);
   const policyPages = useMemo(
     () => contentPages.filter((item) => item.type === 'policy').sort((a, b) => a.sort_order - b.sort_order),
     [contentPages],
@@ -185,6 +200,10 @@ export default function AdminPage() {
     () => contentPages.filter((item) => item.type === 'hero').sort((a, b) => a.sort_order - b.sort_order),
     [contentPages],
   );
+  const aboutPages = useMemo(
+    () => contentPages.filter((item) => item.type === 'about').sort((a, b) => a.sort_order - b.sort_order),
+    [contentPages],
+  );
   const sortedUsers = useMemo(
     () => [...users].sort((a, b) => (a.created_at && b.created_at ? (a.created_at < b.created_at ? 1 : -1) : 0)),
     [users],
@@ -193,20 +212,49 @@ export default function AdminPage() {
     () => contentPages.find((item) => item.type === 'policy' && item.slug === FOOTER_MAP_SLUG) ?? null,
     [contentPages],
   );
+  const footerBrandPage = useMemo(
+    () => contentPages.find((item) => item.type === 'policy' && item.slug === FOOTER_BRAND_SLUG) ?? null,
+    [contentPages],
+  );
 
   const loadAll = async () => {
-    const [categoriesRes, productsRes, productImagesRes, contentPagesRes, usersRes] = await Promise.all([
+    const [categoriesRes, productsRes, productImagesRes, contentPagesRes, usersRes] = await Promise.allSettled([
       apiGet<ApiListResponse<Category>>('/categories'),
-      apiGet<ApiListResponse<Product>>('/products'),
+      apiGet<ApiListResponse<Product>>('/products?include_inactive=true', true),
       apiGet<ApiListResponse<ProductImage>>('/product_images'),
       apiGet<ApiListResponse<ContentPage>>('/content_pages'),
       apiGet<ApiListResponse<ManagedUser>>('/users', true),
     ]);
-    setCategories(categoriesRes.items ?? categoriesRes.data ?? []);
-    setProducts(productsRes.items ?? productsRes.data ?? []);
-    setProductImages(productImagesRes.items ?? productImagesRes.data ?? []);
-    setContentPages(contentPagesRes.items ?? contentPagesRes.data ?? []);
-    setUsers(usersRes.items ?? usersRes.data ?? []);
+    if (categoriesRes.status === 'fulfilled') {
+      const next = (categoriesRes.value.items ?? categoriesRes.value.data ?? []).map((item) =>
+        normalizeObjectText(item),
+      );
+      setCategories(next);
+    }
+    if (productsRes.status === 'fulfilled') {
+      const next = (productsRes.value.items ?? productsRes.value.data ?? []).map((item) =>
+        normalizeObjectText(item),
+      );
+      setProducts(next);
+    }
+    if (productImagesRes.status === 'fulfilled') {
+      const next = (productImagesRes.value.items ?? productImagesRes.value.data ?? []).map((item) =>
+        normalizeObjectText(item),
+      );
+      setProductImages(next);
+    }
+    if (contentPagesRes.status === 'fulfilled') {
+      const next = (contentPagesRes.value.items ?? contentPagesRes.value.data ?? []).map((item) =>
+        normalizeObjectText(item),
+      );
+      setContentPages(next);
+    }
+    if (usersRes.status === 'fulfilled') {
+      const next = (usersRes.value.items ?? usersRes.value.data ?? []).map((item) =>
+        normalizeObjectText(item),
+      );
+      setUsers(next);
+    }
   };
 
   const parseGalleryUrls = (value: string) =>
@@ -256,9 +304,16 @@ export default function AdminPage() {
         const user = (await me()) as AdminUser;
         if (!active) return;
         setSessionUser(user);
-        await loadAll();
       } catch {
         if (active) router.push('/admin/login');
+        return;
+      }
+
+      try {
+        await loadAll();
+      } catch (error) {
+        if (!active) return;
+        setNotice(error instanceof Error ? error.message : 'Không thể tải dữ liệu danh mục/sản phẩm');
       }
     };
     void bootstrap();
@@ -280,11 +335,13 @@ export default function AdminPage() {
               slug: newCategory.slug,
               description: newCategory.description,
               parent_id: newCategory.parentId || null,
+              sort_order: Number(newCategory.sortOrder || 0),
+              is_home_visible: newCategory.isHomeVisible,
             },
           },
           true,
         );
-        setNewCategory({ name: '', slug: '', description: '', parentId: '' });
+        setNewCategory({ name: '', slug: '', description: '', parentId: '', sortOrder: '0', isHomeVisible: true });
       }, 'Đã thêm danh mục');
     });
   };
@@ -345,7 +402,7 @@ export default function AdminPage() {
   };
 
   const createContentPage = async (
-    type: 'policy' | 'blog' | 'hero',
+    type: 'policy' | 'blog' | 'hero' | 'about',
     payload: { title: string; slug: string; summary?: string; content?: string | null; thumbnailUrl?: string; sortOrder: string; isPublished: boolean },
   ) => {
     await apiPost(
@@ -416,14 +473,25 @@ export default function AdminPage() {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => setActiveAdminSection('catalog')}
+            onClick={() => setActiveAdminSection('categories')}
             className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-              activeAdminSection === 'catalog'
+              activeAdminSection === 'categories'
                 ? 'bg-[#0B2D4D] text-white'
                 : 'border border-[#d8cdb9] bg-[#fcfaf6] text-[#334155] hover:bg-[#f6efe3]'
             }`}
           >
-            Danh mục & Sản phẩm
+            Danh mục
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveAdminSection('products')}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              activeAdminSection === 'products'
+                ? 'bg-[#0B2D4D] text-white'
+                : 'border border-[#d8cdb9] bg-[#fcfaf6] text-[#334155] hover:bg-[#f6efe3]'
+            }`}
+          >
+            Sản phẩm
           </button>
           <button
             type="button"
@@ -447,15 +515,79 @@ export default function AdminPage() {
           >
             Quản lý user
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveAdminSection('about')}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              activeAdminSection === 'about'
+                ? 'bg-[#0B2D4D] text-white'
+                : 'border border-[#d8cdb9] bg-[#fcfaf6] text-[#334155] hover:bg-[#f6efe3]'
+            }`}
+          >
+            Trang Giới thiệu
+          </button>
         </div>
       </section>
 
-      {activeAdminSection === 'catalog' ? (
+      {activeAdminSection === 'categories' ? (
         <CatalogManagementSection
+          showCategorySection
+          showProductSection={false}
           busy={busy}
           categories={categories}
+          setCategories={setCategories}
           filteredCategories={filteredCategories}
-          childCategoriesMap={childCategoriesMap}
+          selectedParentCategoryId={selectedParentCategoryId}
+          setSelectedParentCategoryId={setSelectedParentCategoryId}
+          selectedParentCategory={selectedParentCategory}
+          selectedParentChildren={selectedParentChildren}
+          newChildCategory={newChildCategory}
+          setNewChildCategory={setNewChildCategory}
+          editingChildCategoryId={editingChildCategoryId}
+          setEditingChildCategoryId={setEditingChildCategoryId}
+          editingChildCategory={editingChildCategory}
+          setEditingChildCategory={setEditingChildCategory}
+          newCategory={newCategory}
+          setNewCategory={setNewCategory}
+          editingCategoryId={editingCategoryId}
+          setEditingCategoryId={setEditingCategoryId}
+          editingCategory={editingCategory}
+          setEditingCategory={setEditingCategory}
+          categorySearch={categorySearch}
+          setCategorySearch={setCategorySearch}
+          submitCategory={submitCategory}
+          productImages={productImages}
+          filteredProducts={filteredProducts}
+          categoryMap={categoryMap}
+          defaultProductImage={DEFAULT_PRODUCT_IMAGE}
+          newProduct={newProduct}
+          setNewProduct={setNewProduct}
+          submitProduct={submitProduct}
+          productSearch={productSearch}
+          setProductSearch={setProductSearch}
+          productCategoryFilter={productCategoryFilter}
+          setProductCategoryFilter={setProductCategoryFilter}
+          productStockFilter={productStockFilter}
+          setProductStockFilter={setProductStockFilter}
+          editingProductId={editingProductId}
+          setEditingProductId={setEditingProductId}
+          editingProduct={editingProduct}
+          setEditingProduct={setEditingProduct}
+          parseGalleryUrls={parseGalleryUrls}
+          run={run}
+          askConfirm={askConfirm}
+          closeConfirm={closeConfirm}
+        />
+      ) : null}
+
+      {activeAdminSection === 'products' ? (
+        <CatalogManagementSection
+          showCategorySection={false}
+          showProductSection
+          busy={busy}
+          categories={categories}
+          setCategories={setCategories}
+          filteredCategories={filteredCategories}
           selectedParentCategoryId={selectedParentCategoryId}
           setSelectedParentCategoryId={setSelectedParentCategoryId}
           selectedParentCategory={selectedParentCategory}
@@ -516,6 +648,7 @@ export default function AdminPage() {
           editingContent={editingContent}
           setEditingContent={setEditingContent}
           footerMapPage={footerMapPage}
+          footerBrandPage={footerBrandPage}
           createContentPage={createContentPage}
           run={run}
           askConfirm={askConfirm}
@@ -523,6 +656,7 @@ export default function AdminPage() {
           parseHeroExtraBanners={parseHeroExtraBanners}
           toHeroSlug={toHeroSlug}
           footerMapSlug={FOOTER_MAP_SLUG}
+          footerBrandSlug={FOOTER_BRAND_SLUG}
         />
       ) : null}
 
@@ -535,6 +669,16 @@ export default function AdminPage() {
           setEditingUserId={setEditingUserId}
           editingUser={editingUser}
           setEditingUser={setEditingUser}
+          run={run}
+          askConfirm={askConfirm}
+          closeConfirm={closeConfirm}
+        />
+      ) : null}
+
+      {activeAdminSection === 'about' ? (
+        <AboutManagementSection
+          busy={busy}
+          aboutPages={aboutPages}
           run={run}
           askConfirm={askConfirm}
           closeConfirm={closeConfirm}

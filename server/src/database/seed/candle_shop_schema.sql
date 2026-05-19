@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS categories (
   slug VARCHAR(255) NOT NULL UNIQUE,
   description TEXT,
   parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+  sort_order INT NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
   deleted_at TIMESTAMP NULL
@@ -111,6 +112,7 @@ CREATE TABLE IF NOT EXISTS inventory_logs (
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_categories_slug ON categories(slug);
 CREATE INDEX IF NOT EXISTS idx_categories_parent_id ON categories(parent_id);
+CREATE INDEX IF NOT EXISTS idx_categories_sort_order ON categories(sort_order);
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
 CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_is_active ON products(is_active);

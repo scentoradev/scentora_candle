@@ -1,6 +1,8 @@
-﻿import RichTextContent from '@/components/common/RichTextContent';
-import { Product } from './types';
+import { useMemo, useState } from 'react';
+import RichTextContent from '@/components/common/RichTextContent';
 import { formatVnd } from '@/utils/format';
+import { getImageCandidates } from '@/utils/image';
+import { Product } from './types';
 
 type ProductCardProps = {
   product: Product;
@@ -11,16 +13,29 @@ type ProductCardProps = {
 };
 
 export default function ProductCard({ product, categoryName, defaultImage, onEdit, onDelete }: ProductCardProps) {
+  const [imageIndex, setImageIndex] = useState(0);
+  const candidates = useMemo(
+    () => getImageCandidates(product.thumbnail_url || defaultImage),
+    [product.thumbnail_url, defaultImage],
+  );
+  const imageUrl = candidates[imageIndex] || defaultImage;
+
   return (
     <article className="group overflow-hidden rounded-[28px] border border-[#eee2d2] bg-white shadow-sm">
       <div className="relative h-[280px] overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={product.thumbnail_url || defaultImage}
+          src={imageUrl}
           alt={product.name}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           loading="lazy"
           referrerPolicy="no-referrer"
+          onError={() => {
+            setImageIndex((prev) => {
+              if (prev + 1 < candidates.length) return prev + 1;
+              return prev;
+            });
+          }}
         />
         <span className="absolute left-3 top-3 rounded-full bg-[#0B2D4D] px-3 py-1 text-xs text-white">{categoryName}</span>
       </div>
@@ -45,4 +60,3 @@ export default function ProductCard({ product, categoryName, defaultImage, onEdi
     </article>
   );
 }
-

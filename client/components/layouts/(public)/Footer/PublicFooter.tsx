@@ -23,17 +23,25 @@ const fallbackPolicyLinks = [
 
 const footerLinkClass = 'hover:text-[#D4AF37] transition';
 const FOOTER_MAP_SLUG = 'footer_google_map_link';
+const FOOTER_BRAND_SLUG = 'footer_brand_profile';
 
 export default function PublicFooter() {
   const { items: policyItems } = useContentPages({ type: 'policy', onlyPublished: true });
   const footerMapItem = policyItems.find((item) => item.slug === FOOTER_MAP_SLUG);
+  const footerBrandItem = policyItems.find((item) => item.slug === FOOTER_BRAND_SLUG);
   const footerMapUrl = (footerMapItem?.summary || '').trim();
+  const footerBrandName = (footerBrandItem?.title || 'Scentora Candle').trim();
+  const footerBrandTagline = (footerBrandItem?.summary || 'Xưởng hương thơm cao cấp').trim();
+  const footerBrandDescription = (
+    footerBrandItem?.content ||
+    'Thắp sáng không gian, lan tỏa yêu thương. Bộ sưu tập nến thơm và tinh dầu mang đến cảm giác thư giãn, sang trọng và đầy cảm xúc cho từng khoảnh khắc.'
+  ).trim();
 
   const policyLinks =
-    policyItems.filter((item) => item.slug !== FOOTER_MAP_SLUG).length > 0
+    policyItems.filter((item) => item.slug !== FOOTER_MAP_SLUG && item.slug !== FOOTER_BRAND_SLUG).length > 0
       ? policyItems
           .slice()
-          .filter((item) => item.slug !== FOOTER_MAP_SLUG)
+          .filter((item) => item.slug !== FOOTER_MAP_SLUG && item.slug !== FOOTER_BRAND_SLUG)
           .sort((a, b) => a.sort_order - b.sort_order)
           .map((item) => ({
             label: item.title,
@@ -51,13 +59,13 @@ export default function PublicFooter() {
             </div>
 
             <div>
-              <h2 className="text-2xl font-bold sm:text-3xl">Scentora Candle</h2>
-              <p className="mt-1 text-xs uppercase tracking-[0.2em] text-[#D4AF37] sm:text-sm sm:tracking-[0.25em]">Xưởng hương thơm cao cấp</p>
+              <h2 className="text-2xl font-bold sm:text-3xl">{footerBrandName}</h2>
+              <p className="mt-1 text-xs uppercase tracking-[0.2em] text-[#D4AF37] sm:text-sm sm:tracking-[0.25em]">{footerBrandTagline}</p>
             </div>
           </div>
 
           <p className="max-w-md text-[15px] leading-7 text-white/75 sm:text-[17px] sm:leading-8">
-            Thắp sáng không gian, lan tỏa yêu thương. Bộ sưu tập nến thơm và tinh dầu mang đến cảm giác thư giãn, sang trọng và đầy cảm xúc cho từng khoảnh khắc.
+            {footerBrandDescription}
           </p>
 
           <div className="mt-8 flex gap-4">

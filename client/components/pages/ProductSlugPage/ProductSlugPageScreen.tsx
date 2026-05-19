@@ -1,12 +1,14 @@
 ﻿'use client';
 
 import Link from 'next/link';
+import type { SyntheticEvent } from 'react';
 import { use, useEffect, useMemo, useState } from 'react';
 import RichTextContent from '@/components/common/RichTextContent';
 import { DEFAULT_PRODUCT_IMAGE } from '@/constants/media';
 import { useProductImages } from '@/hooks/useProductImages';
 import { useProducts } from '@/hooks/useProducts';
 import { formatVnd } from '@/utils/format';
+import { getImageCandidates, normalizeImageUrl } from '@/utils/image';
 
 type ProductSlugPageProps = {
   params: Promise<{
@@ -18,12 +20,13 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
   const { slug } = use(params);
   const { products, loading } = useProducts();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [cardImageTick, setCardImageTick] = useState(0);
+  const [slideErrorCounts, setSlideErrorCounts] = useState<Record<number, number>>({});
 
   const product = useMemo(() => products.find((item) => item.slug === slug) ?? null, [products, slug]);
   const { images } = useProductImages(product?.id);
   const { images: allProductImages } = useProductImages();
-  const galleryImages = useMemo(
+
+  const galleryImageSources = useMemo(
     () =>
       [...images]
         .sort((a, b) => a.sort_order - b.sort_order)
@@ -31,15 +34,65 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
         .filter(Boolean),
     [images],
   );
-  const productSlides = useMemo(() => {
+
+  const slideCandidates = useMemo(() => {
+    const mainSource = product?.thumbnail_url || DEFAULT_PRODUCT_IMAGE;
     const unique = new Set<string>();
-    const ordered = [product?.thumbnail_url || DEFAULT_PRODUCT_IMAGE, ...galleryImages].filter((url) => {
-      if (!url || unique.has(url)) return false;
-      unique.add(url);
+
+    const orderedSources = [mainSource, ...galleryImageSources].filter((source) => {
+      const normalized = normalizeImageUrl(source);
+      if (!normalized || unique.has(normalized)) return false;
+      unique.add(normalized);
       return true;
     });
-    return ordered.length ? ordered : [DEFAULT_PRODUCT_IMAGE];
-  }, [galleryImages, product?.thumbnail_url]);
+
+    const candidateList = orderedSources
+      .map((source) => getImageCandidates(source))
+      .map((list) => list.filter(Boolean))
+      .filter((list) => list.length > 0);
+
+    return candidateList.length ? candidateList : [[DEFAULT_PRODUCT_IMAGE]];
+  }, [galleryImageSources, product?.thumbnail_url]);
+
+  const productSlides = useMemo(
+    () =>
+      slideCandidates.map((candidates, index) => {
+        const candidateIndex = slideErrorCounts[index] ?? 0;
+        return candidates[candidateIndex] || candidates[0] || DEFAULT_PRODUCT_IMAGE;
+      }),
+    [slideCandidates, slideErrorCounts],
+  );
+
+  const tryNextSlideCandidate = (slideIndex: number) => {
+    setSlideErrorCounts((prev) => {
+      const current = prev[slideIndex] ?? 0;
+      const maxIndex = (slideCandidates[slideIndex]?.length ?? 1) - 1;
+      if (current < maxIndex) {
+        return { ...prev, [slideIndex]: current + 1 };
+      }
+      return prev;
+    });
+  };
+
+  const handleDriveImageFallback = (event: SyntheticEvent<HTMLImageElement>) => {
+    const img = event.currentTarget;
+    const source = img.dataset.source || img.src;
+    const candidates = getImageCandidates(source);
+    if (!candidates.length) {
+      img.onerror = null;
+      img.src = DEFAULT_PRODUCT_IMAGE;
+      return;
+    }
+    const currentIndex = Number(img.dataset.candidateIndex || 0);
+    const nextIndex = currentIndex + 1;
+    if (nextIndex < candidates.length) {
+      img.dataset.candidateIndex = String(nextIndex);
+      img.src = candidates[nextIndex];
+      return;
+    }
+    img.onerror = null;
+    img.src = DEFAULT_PRODUCT_IMAGE;
+  };
 
   useEffect(() => {
     if (productSlides.length <= 1) return;
@@ -47,20 +100,13 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
       setActiveImageIndex((prev) => (prev + 1) % productSlides.length);
     }, 3500);
     return () => window.clearInterval(timer);
-  }, [productSlides]);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setCardImageTick((prev) => prev + 1);
-    }, 3000);
-    return () => window.clearInterval(timer);
-  }, []);
+  }, [productSlides.length]);
 
   const productImageMap = useMemo(() => {
     const map = new Map<string, string[]>();
     allProductImages.forEach((item) => {
       const list = map.get(item.product_id) ?? [];
-      list.push(item.image_url);
+      list.push(normalizeImageUrl(item.image_url));
       map.set(item.product_id, list);
     });
     return map;
@@ -81,7 +127,7 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
     const map = new Map<string, string[]>();
     otherProducts.forEach((item) => {
       const unique = new Set<string>();
-      const slides = [item.thumbnail_url || DEFAULT_PRODUCT_IMAGE, ...(productImageMap.get(item.id) ?? [])].filter((url) => {
+      const slides = [normalizeImageUrl(item.thumbnail_url || DEFAULT_PRODUCT_IMAGE), ...(productImageMap.get(item.id) ?? [])].filter((url) => {
         if (!url || unique.has(url)) return false;
         unique.add(url);
         return true;
@@ -119,6 +165,10 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
               className="h-full w-full object-cover"
               loading="eager"
               referrerPolicy="no-referrer"
+              onError={() => {
+                const currentSlideIndex = activeImageIndex % productSlides.length;
+                tryNextSlideCandidate(currentSlideIndex);
+              }}
             />
             {productSlides.length > 1 ? (
               <>
@@ -143,7 +193,7 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
             <div className="mt-4 grid grid-cols-3 gap-3">
               {productSlides.map((imageUrl, index) => (
                 <button
-                  key={imageUrl}
+                  key={`${index}-${imageUrl}`}
                   type="button"
                   onClick={() => setActiveImageIndex(index)}
                   className={`h-28 overflow-hidden rounded-xl border ${index === activeImageIndex ? 'border-[#0B2D4D]' : 'border-[#eee2d2]'}`}
@@ -155,6 +205,9 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
                     className="h-full w-full object-cover"
                     loading="lazy"
                     referrerPolicy="no-referrer"
+                    onError={() => {
+                      tryNextSlideCandidate(index);
+                    }}
                   />
                 </button>
               ))}
@@ -189,7 +242,7 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {otherProducts.map((item) => {
               const slides = otherProductSlidesMap.get(item.id) ?? [item.thumbnail_url || DEFAULT_PRODUCT_IMAGE];
-              const imageToShow = slides[cardImageTick % slides.length];
+              const imageToShow = slides[0];
               return (
                 <Link
                   key={item.id}
@@ -204,6 +257,9 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
                       className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                       loading="lazy"
                       referrerPolicy="no-referrer"
+                      data-source={imageToShow}
+                      data-candidate-index="0"
+                      onError={handleDriveImageFallback}
                     />
                   </div>
                   <div className="space-y-2 p-4">
@@ -225,6 +281,9 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
                               className="h-full w-full object-cover"
                               loading="lazy"
                               referrerPolicy="no-referrer"
+                              data-source={imageUrl}
+                              data-candidate-index="0"
+                              onError={handleDriveImageFallback}
                             />
                           </div>
                         ))}
@@ -240,4 +299,3 @@ export default function ProductSlugPage({ params }: ProductSlugPageProps) {
     </main>
   );
 }
-

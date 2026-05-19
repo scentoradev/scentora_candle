@@ -26,7 +26,10 @@ export class ContentPagesController {
     @Body() dto: CreateContentPagesDto,
     @Req() req: { headers: { authorization?: string; referer?: string } },
   ) {
-    return this.service.create(dto, resolveAuthorizationForSwagger(req.headers));
+    return this.service.create(
+      dto,
+      resolveAuthorizationForSwagger(req.headers),
+    );
   }
 
   @Get()
@@ -45,7 +48,11 @@ export class ContentPagesController {
     @Body() dto: UpdateContentPagesDto,
     @Req() req: { headers: { authorization?: string; referer?: string } },
   ) {
-    return this.service.update(id, dto, resolveAuthorizationForSwagger(req.headers));
+    return this.service.update(
+      id,
+      dto,
+      resolveAuthorizationForSwagger(req.headers),
+    );
   }
 
   @Delete(':id')

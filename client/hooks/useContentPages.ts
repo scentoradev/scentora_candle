@@ -5,7 +5,7 @@ import { apiGet, type ApiListResponse } from './api';
 
 export type ContentPageItem = {
   id: string;
-  type: 'policy' | 'blog' | 'hero';
+  type: 'policy' | 'blog' | 'hero' | 'about';
   title: string;
   slug: string;
   summary?: string | null;
@@ -16,7 +16,7 @@ export type ContentPageItem = {
 };
 
 type UseContentPagesParams = {
-  type?: 'policy' | 'blog' | 'hero';
+  type?: 'policy' | 'blog' | 'hero' | 'about';
   onlyPublished?: boolean;
 };
 

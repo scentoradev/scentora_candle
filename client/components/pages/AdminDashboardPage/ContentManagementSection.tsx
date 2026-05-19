@@ -1,7 +1,7 @@
 import { apiDelete, apiPatch } from '@/hooks/api';
 import RichTextEditor from '@/components/common/RichTextEditor';
 
-type ContentType = 'policy' | 'blog' | 'hero';
+type ContentType = 'policy' | 'blog' | 'hero' | 'about';
 
 type ContentPage = {
   id: string;
@@ -69,6 +69,7 @@ type Props = {
   editingContent: ContentEditorState;
   setEditingContent: React.Dispatch<React.SetStateAction<ContentEditorState>>;
   footerMapPage: ContentPage | null;
+  footerBrandPage: ContentPage | null;
   createContentPage: (
     type: ContentType,
     payload: { title: string; slug: string; summary?: string; content?: string | null; thumbnailUrl?: string; sortOrder: string; isPublished: boolean },
@@ -79,6 +80,7 @@ type Props = {
   parseHeroExtraBanners: (value: string) => { imageUrl: string; targetUrl: string }[];
   toHeroSlug: () => string;
   footerMapSlug: string;
+  footerBrandSlug: string;
 };
 
 export default function ContentManagementSection({
@@ -97,6 +99,7 @@ export default function ContentManagementSection({
   editingContent,
   setEditingContent,
   footerMapPage,
+  footerBrandPage,
   createContentPage,
   run,
   askConfirm,
@@ -104,6 +107,7 @@ export default function ContentManagementSection({
   parseHeroExtraBanners,
   toHeroSlug,
   footerMapSlug,
+  footerBrandSlug,
 }: Props) {
   return (
     <section className="space-y-6 rounded-3xl border border-[#d8cdb9] bg-white p-6">
@@ -246,6 +250,90 @@ export default function ContentManagementSection({
         </div>
       </form>
 
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const formData = new FormData(e.currentTarget);
+          const brandName = String(formData.get('footer_brand_name') || '').trim();
+          const brandTagline = String(formData.get('footer_brand_tagline') || '').trim();
+          const brandDescription = String(formData.get('footer_brand_description') || '').trim();
+          askConfirm('Xác nhận lưu', 'Bạn có chắc muốn cập nhật thông tin thương hiệu ở footer?', () => {
+            closeConfirm();
+            void run(async () => {
+              if (footerBrandPage?.id) {
+                await apiPatch(
+                  `/content_pages/${footerBrandPage.id}`,
+                  {
+                    data: {
+                      title: brandName,
+                      summary: brandTagline,
+                      content: brandDescription || null,
+                      is_published: true,
+                    },
+                  },
+                  true,
+                );
+              } else {
+                await createContentPage('policy', {
+                  title: brandName || 'Scentora Candle',
+                  slug: footerBrandSlug,
+                  summary: brandTagline || 'Xưởng hương thơm cao cấp',
+                  content: brandDescription || null,
+                  sortOrder: '9998',
+                  isPublished: true,
+                });
+              }
+            }, 'Đã lưu thông tin thương hiệu footer');
+          });
+        }}
+        className="space-y-3 rounded-2xl border border-[#e7dccb] bg-[#fcfaf6] p-4"
+      >
+        <h4 className="text-lg font-bold text-[#0B2D4D]">Thông tin thương hiệu Footer</h4>
+        <input
+          name="footer_brand_name"
+          key={`${footerBrandPage?.id || 'footer-brand-empty'}-name`}
+          defaultValue={footerBrandPage?.title || 'Scentora Candle'}
+          placeholder="Tên thương hiệu"
+          className="w-full rounded-xl border px-3 py-2"
+        />
+        <input
+          name="footer_brand_tagline"
+          key={`${footerBrandPage?.id || 'footer-brand-empty'}-tagline`}
+          defaultValue={footerBrandPage?.summary || 'Xưởng hương thơm cao cấp'}
+          placeholder="Tagline thương hiệu"
+          className="w-full rounded-xl border px-3 py-2"
+        />
+        <textarea
+          name="footer_brand_description"
+          key={`${footerBrandPage?.id || 'footer-brand-empty'}-description`}
+          defaultValue={
+            footerBrandPage?.content ||
+            'Thắp sáng không gian, lan tỏa yêu thương. Bộ sưu tập nến thơm và tinh dầu mang đến cảm giác thư giãn, sang trọng và đầy cảm xúc cho từng khoảnh khắc.'
+          }
+          placeholder="Mô tả thương hiệu ở footer"
+          className="min-h-28 w-full rounded-xl border px-3 py-2"
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <button className="rounded-full bg-[#0B2D4D] px-4 py-2 text-sm font-semibold text-white">Lưu thông tin thương hiệu</button>
+          {footerBrandPage?.id ? (
+            <button
+              type="button"
+              onClick={() =>
+                askConfirm('Xác nhận xóa', 'Bạn có chắc muốn xóa thông tin thương hiệu footer?', () => {
+                  closeConfirm();
+                  void run(async () => {
+                    await apiDelete(`/content_pages/${footerBrandPage.id}`, true);
+                  }, 'Đã xóa thông tin thương hiệu footer');
+                })
+              }
+              className="rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600"
+            >
+              Xóa thông tin thương hiệu
+            </button>
+          ) : null}
+        </div>
+      </form>
+
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="overflow-hidden rounded-2xl border border-[#e7dccb]">
           <p className="border-b bg-[#f8f4ec] px-4 py-3 font-semibold text-[#0B2D4D]">Danh sách trang chính sách</p>
@@ -325,6 +413,7 @@ export default function ContentManagementSection({
               <option value="policy">Chính sách</option>
               <option value="blog">Blog</option>
               <option value="hero">Hero</option>
+              <option value="about">Giới thiệu</option>
             </select>
             <input value={editingContent.title} onChange={(e) => setEditingContent((v) => ({ ...v, title: e.target.value }))} className="rounded-xl border px-3 py-2" placeholder="Tiêu đề" />
             <input value={editingContent.slug} onChange={(e) => setEditingContent((v) => ({ ...v, slug: e.target.value }))} className="rounded-xl border px-3 py-2" placeholder="Slug" />
