@@ -54,7 +54,7 @@ export default function PublicFooter() {
       <div className="grid grid-cols-1 gap-10 border-b border-white/10 px-4 py-14 sm:px-6 md:grid-cols-2 md:gap-12 md:py-16 xl:grid-cols-4 xl:px-8 xl:py-20">
         <div>
           <div className="mb-6 flex items-center gap-4">
-            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-[#08243d] shadow-lg">
+            <div className="flex h-20 w-20 shrink-0 aspect-square items-center justify-center overflow-hidden rounded-full bg-[#08243d] shadow-lg">
               <Image src="/logo.png" alt="Scentora Candle logo" width={80} height={80} className="h-full w-full rounded-full object-cover" />
             </div>
 
