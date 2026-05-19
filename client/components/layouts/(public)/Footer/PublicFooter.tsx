@@ -55,7 +55,7 @@ export default function PublicFooter() {
         <div>
           <div className="mb-6 flex items-center gap-4">
             <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-[#08243d] shadow-lg">
-              <Image src="/logo.png" alt="Scentora Candle logo" width={80} height={80} className="h-full w-auto object-cover" />
+              <Image src="/logo.png" alt="Scentora Candle logo" width={80} height={80} className="h-full w-full rounded-full object-cover" />
             </div>
 
             <div>
