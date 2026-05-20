@@ -146,6 +146,7 @@ export default function CatalogManagementSection(props: Props) {
     });
   };
   appendOptions(null, 0);
+  const depthByCategoryId = new Map(categoryTreeOptions.map((item) => [item.id, item.depth]));
   const parentCategoryOptions = categoryTreeOptions.filter((category) => category.depth === 0);
   const childCategoryTreeOptions = categoryTreeOptions.filter((category) => category.depth > 0);
   const countDescendants = (categoryId: string): number => {
@@ -289,12 +290,11 @@ export default function CatalogManagementSection(props: Props) {
           <button type="button" onClick={() => setCategorySearch('')} className="rounded-xl border border-[#d8cdb9] px-3 py-2 text-sm font-semibold text-[#334155] hover:bg-[#f8f4ec]">Xóa bộ lọc danh mục</button>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredCategories
-            .filter((category) => countDescendants(category.id) > 0)
-            .map((category) => (
+          {filteredCategories.map((category) => (
             <CategoryCard
               key={category.id}
               category={category}
+              depth={depthByCategoryId.get(category.id) ?? 0}
               childCount={countDescendants(category.id)}
               onOpenChildren={categories.some((child) => child.parent_id === category.id) ? () => setSelectedParentCategoryId(category.id) : undefined}
               onEdit={() => {

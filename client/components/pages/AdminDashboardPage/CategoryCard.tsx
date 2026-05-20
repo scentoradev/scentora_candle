@@ -4,6 +4,7 @@ import { Category } from './types';
 type CategoryCardProps = {
   category: Category;
   childCount: number;
+  depth?: number;
   isActive?: boolean;
   onOpenChildren?: () => void;
   onEdit: () => void;
@@ -13,6 +14,7 @@ type CategoryCardProps = {
 export default function CategoryCard({
   category,
   childCount,
+  depth = 0,
   isActive,
   onOpenChildren,
   onEdit,
@@ -28,6 +30,7 @@ export default function CategoryCard({
         <div>
           <h4 className="text-base font-semibold text-[#0B2D4D]">{category.name}</h4>
           <p className="mt-1 text-xs text-[#6b7280]">/{category.slug}</p>
+          {depth > 0 ? <p className="mt-1 text-xs font-semibold text-[#7b5c26]">Danh mục con</p> : null}
         </div>
         <span className="rounded-full border border-[#d8cdb9] bg-white px-2 py-0.5 text-xs font-semibold text-[#334155]">
           {childCount} con
