@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -222,11 +223,22 @@ export class ProductsService {
 
   async remove(id: string, authorization?: string) {
     assertAdminAuthorization(authorization);
-    const result = await this.pool.query(
-      `UPDATE products SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL RETURNING id`,
-      [id],
-    );
+    let result;
+    try {
+      result = await this.pool.query(
+        `DELETE FROM products WHERE id = $1 RETURNING id`,
+        [id],
+      );
+    } catch (error) {
+      const pgError = error as { code?: string };
+      if (pgError?.code === '23503') {
+        throw new BadRequestException(
+          'Không thể xóa sản phẩm do còn dữ liệu liên quan',
+        );
+      }
+      throw error;
+    }
     if (!result.rows[0]) throw new NotFoundException('Product not found');
-    return { message: 'Soft delete products', id };
+    return { message: 'Delete products', id };
   }
 }

@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Pool } from 'pg';
 import { hash } from 'bcryptjs';
 import { PG_POOL } from '../../database/pg.provider';
@@ -71,11 +76,22 @@ export class UsersService {
 
   async remove(id: string, authorization?: string) {
     assertAdminAuthorization(authorization);
-    const result = await this.pool.query(
-      `UPDATE users SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL RETURNING id`,
-      [id],
-    );
+    let result;
+    try {
+      result = await this.pool.query(
+        `DELETE FROM users WHERE id = $1 RETURNING id`,
+        [id],
+      );
+    } catch (error) {
+      const pgError = error as { code?: string };
+      if (pgError?.code === '23503') {
+        throw new BadRequestException(
+          'Không thể xóa user do còn dữ liệu liên quan',
+        );
+      }
+      throw error;
+    }
     if (!result.rows[0]) throw new NotFoundException('User not found');
-    return { message: 'Soft delete users', id };
+    return { message: 'Delete users', id };
   }
 }

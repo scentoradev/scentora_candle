@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -219,11 +220,22 @@ export class CategoriesService {
   async remove(id: string, authorization?: string) {
     await this.ensureReady();
     assertAdminAuthorization(authorization);
-    const result = await this.pool.query(
-      `UPDATE categories SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL RETURNING id`,
-      [id],
-    );
+    let result;
+    try {
+      result = await this.pool.query(
+        `DELETE FROM categories WHERE id = $1 RETURNING id`,
+        [id],
+      );
+    } catch (error) {
+      const pgError = error as { code?: string };
+      if (pgError?.code === '23503') {
+        throw new BadRequestException(
+          'Không thể xóa danh mục do còn dữ liệu liên quan',
+        );
+      }
+      throw error;
+    }
     if (!result.rows[0]) throw new NotFoundException('Category not found');
-    return { message: 'Soft delete categories', id };
+    return { message: 'Delete categories', id };
   }
 }
